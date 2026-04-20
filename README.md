@@ -18,13 +18,12 @@ swiss fans out to all configured sources in parallel and returns a single struct
 
 ---
 
-## Quick start
+## Quick start (Docker)
 
 ```bash
 git clone https://github.com/yourusername/swiss
 cd swiss
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+make build
 ```
 
 Create your config file:
@@ -35,20 +34,49 @@ cp config.example.json ~/.config/swiss/config.json
 chmod 600 ~/.config/swiss/config.json
 ```
 
-Fill in your API keys (or use [environment variables](docs/configuration.md#environment-variables)), then register with Claude Code:
+Fill in your API keys (or use [environment variables](docs/configuration.md#environment-variables)), then register with Claude Code by adding this to `~/.claude/mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "swiss": {
-      "command": "/home/gabriel/swiss/.venv/bin/python3",
-      "args": ["/home/gabriel/swiss/server.py"]
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-v", "/home/you/.config/swiss/config.json:/config/swiss.json:ro",
+        "-e", "SWISS_CONFIG_PATH=/config/swiss.json",
+        "swiss"
+      ]
     }
   }
 }
 ```
 
-Add that block to `~/.claude/mcp.json`, restart Claude Code, and call `lookup_ip("8.8.8.8")` to verify.
+Replace `/home/you/...` with the absolute path to your config file. `-i` (not `-t`) is required for stdio MCP transport. Restart Claude Code after updating `mcp.json`, then call `lookup_ip("8.8.8.8")` to verify.
+
+---
+
+## Quick start (local venv)
+
+```bash
+git clone https://github.com/yourusername/swiss
+cd swiss
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+```
+
+Create your config file as above, then register with Claude Code:
+
+```json
+{
+  "mcpServers": {
+    "swiss": {
+      "command": "/home/you/swiss/.venv/bin/python3",
+      "args": ["/home/you/swiss/server.py"]
+    }
+  }
+}
+```
 
 ---
 
@@ -114,7 +142,10 @@ Detailed per-integration docs including where to get API keys, tier differences,
 ## Development
 
 ```bash
-# Run tests
+# Run tests (Docker — recommended)
+make test
+
+# Run tests (local venv)
 .venv/bin/pytest
 
 # Run a single test file
