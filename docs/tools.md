@@ -4,6 +4,29 @@ swiss exposes three categories of MCP tools: aggregated enrichment tools, dedica
 
 ---
 
+## WAF detection
+
+### `detect_waf(url)`
+
+Detect Web Application Firewalls in front of a URL using wafw00f v2. Tests all known signatures (`-a`).
+
+**No API key required.** Requires `wafw00f` installed in the venv (`pip install wafw00f`).
+
+**Example:** `detect_waf("https://example.com")`
+
+```json
+{
+  "source": "waf",
+  "url": "https://example.com",
+  "detected": ["Cloudflare"],
+  "generic_detected": false
+}
+```
+
+`detected` is empty if no WAF is found. `generic_detected` is `true` when a WAF is present but its vendor could not be identified.
+
+---
+
 ## Exposure check
 
 ### `check_exposure(host, port=None)`

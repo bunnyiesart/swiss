@@ -33,6 +33,7 @@ from lib.malwarebazaar import MalwareBazaar
 from lib.misp import MISPClient
 from lib.mitre import MITREClient
 from lib.censys import CensysClient
+from lib.waf import WAFDetector
 from lib.exposure import ExposureChecker
 from lib.recon import BGPViewClient, CRTShClient, DNSRecords
 from lib.shodan import Shodan
@@ -74,7 +75,7 @@ _vt = _abuse = _gn = _shodan = _ipinfo = _xforce = _av = _urlscan = _honeypot = 
 _mb = _tf = _uh = None
 _misp = _graylog = _iris = _wazuh = None
 _blacklists = _whois_c = _cve_c = _mac_c = _ua_c = _evid_c = _lolbas_c = _mitre_c = None
-_crtsh = _bgpview = _dns_records = _censys = _exposure = None
+_crtsh = _bgpview = _dns_records = _censys = _exposure = _waf = None
 _blockchain_c = _decoder = _doh = _feodo = _tor = None
 
 
@@ -326,6 +327,13 @@ def get_exposure():
     if _exposure is None:
         _exposure = ExposureChecker()
     return _exposure
+
+
+def get_waf():
+    global _waf
+    if _waf is None:
+        _waf = WAFDetector()
+    return _waf
 
 
 def get_decoder():
@@ -690,6 +698,23 @@ def check_exposure(host: str, port: int = None) -> dict:
     if port is not None:
         tasks["probe"] = (get_exposure().probe, host, port)
     return _parallel(tasks)
+
+
+@mcp.tool()
+def detect_waf(url: str) -> dict:
+    """Detect Web Application Firewalls in front of a URL using wafw00f.
+
+    Tests all known WAF signatures (-a flag). Returns all matches, not
+    just the first. Requires wafw00f to be installed in the environment.
+
+    Args:
+        url: Full URL to test (e.g. https://example.com).
+
+    Returns:
+        detected: list of identified WAF names (empty if none found).
+        generic_detected: true if a generic WAF was detected but not identified.
+    """
+    return get_waf().detect(url)
 
 
 @mcp.tool()
