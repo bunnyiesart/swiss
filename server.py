@@ -32,6 +32,7 @@ from lib.maclookup import MACLookup
 from lib.malwarebazaar import MalwareBazaar
 from lib.misp import MISPClient
 from lib.mitre import MITREClient
+from lib.recon import BGPViewClient, CRTShClient, DNSRecords
 from lib.shodan import Shodan
 from lib.threatfox import ThreatFox
 from lib.tor_exit import TorExitNodes
@@ -71,6 +72,7 @@ _vt = _abuse = _gn = _shodan = _ipinfo = _xforce = _av = _urlscan = _honeypot = 
 _mb = _tf = _uh = None
 _misp = _graylog = _iris = _wazuh = None
 _blacklists = _whois_c = _cve_c = _mac_c = _ua_c = _evid_c = _lolbas_c = _mitre_c = None
+_crtsh = _bgpview = _dns_records = None
 _blockchain_c = _decoder = _doh = _feodo = _tor = None
 
 
@@ -286,6 +288,27 @@ def get_mitre():
     if _mitre_c is None:
         _mitre_c = MITREClient()
     return _mitre_c
+
+
+def get_crtsh():
+    global _crtsh
+    if _crtsh is None:
+        _crtsh = CRTShClient()
+    return _crtsh
+
+
+def get_bgpview():
+    global _bgpview
+    if _bgpview is None:
+        _bgpview = BGPViewClient()
+    return _bgpview
+
+
+def get_dns_records():
+    global _dns_records
+    if _dns_records is None:
+        _dns_records = DNSRecords()
+    return _dns_records
 
 
 def get_decoder():
@@ -586,6 +609,43 @@ def lookup_url(url: str) -> dict:
     if bl:
         results["custom_blacklists"] = bl
     return results
+
+
+@mcp.tool()
+def recon(target: str) -> dict:
+    """Passive reconnaissance on an IP address or domain.
+
+    Domain targets: certificate transparency (crt.sh), DNS records
+    (A/AAAA/MX/NS/TXT/CNAME), WHOIS.
+
+    IP targets: BGPView (ASN/prefix/RIR), Shodan (open ports/services),
+    reverse DNS (PTR).
+
+    Args:
+        target: IPv4/IPv6 address or domain name.
+
+    Returns:
+        Dict keyed by source name.
+    """
+    normalized = _normalize_ioc(target.strip())
+    ioc_type = detect_ioc_type(normalized)
+
+    if ioc_type == "ip":
+        tasks = {
+            "bgpview": (get_bgpview().lookup_ip, normalized),
+            "shodan":  (get_shodan().check_ip, normalized),
+            "dns":     (get_dns_records().lookup_ptr, normalized),
+        }
+    elif ioc_type == "domain":
+        tasks = {
+            "crt_sh": (get_crtsh().lookup, normalized),
+            "dns":    (get_dns_records().lookup, normalized),
+            "whois":  (get_whois().lookup, normalized),
+        }
+    else:
+        return {"error": f"recon requires an IP or domain, got: {ioc_type}"}
+
+    return _parallel(tasks)
 
 
 @mcp.tool()

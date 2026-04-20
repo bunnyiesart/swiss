@@ -328,6 +328,55 @@ Per-integration reference: where to get API keys, tier differences, and what fie
 
 ---
 
+## crt.sh (Certificate Transparency)
+
+**Key:** None required. Public API.
+
+**Methods:** `lookup(domain)`
+
+Queries crt.sh for all certificates ever issued for a domain. Useful for passive subdomain enumeration — wildcards are stripped.
+
+**Returned fields:**
+```json
+{
+  "source": "crt_sh",
+  "domain": "example.com",
+  "found": true,
+  "cert_count": 42,
+  "subdomains": ["example.com", "mail.example.com", "www.example.com"]
+}
+```
+
+*Subdomains capped at 50 entries.*
+
+---
+
+## BGPView
+
+**Key:** None required. Public API.
+
+**Methods:** `lookup_ip(ip)`
+
+Returns BGP routing context for an IP: announced prefixes, ASN, organisation, country, and RIR allocation.
+
+**Returned fields:**
+```json
+{
+  "source": "bgpview",
+  "ip": "8.8.8.8",
+  "found": true,
+  "prefixes": [
+    {"prefix": "8.8.8.0/24", "asn": 15169, "org": "Google LLC", "country": "US"}
+  ],
+  "rir": "ARIN",
+  "allocated": "1992-12-01"
+}
+```
+
+*Prefixes capped at 5 entries.*
+
+---
+
 ## MITRE ATT&CK
 
 **Key:** None required. Fetches the enterprise STIX bundle from MITRE's GitHub (`mitre/cti`) and caches it for 24 hours.

@@ -4,6 +4,41 @@ swiss exposes three categories of MCP tools: aggregated enrichment tools, dedica
 
 ---
 
+## Recon tool
+
+### `recon(target)`
+
+Passive reconnaissance fan-out for an IP or domain. No API key required for crt.sh, BGPView, or DNS.
+
+**Domain targets:** certificate transparency (crt.sh), DNS records (A/AAAA/MX/NS/TXT/CNAME), WHOIS.
+
+**IP targets:** BGPView (ASN/prefix/RIR), Shodan (open ports/services), reverse DNS (PTR).
+
+**Example:**
+```
+recon("example.com")
+```
+```json
+{
+  "crt_sh": {"found": true, "cert_count": 42, "subdomains": ["www.example.com", "mail.example.com", ...]},
+  "dns":    {"records": {"A": ["93.184.216.34"], "MX": ["0 ."], "NS": [...]}},
+  "whois":  {"registrar": "IANA", "creation_date": "1992-01-01", ...}
+}
+```
+
+```
+recon("8.8.8.8")
+```
+```json
+{
+  "bgpview": {"found": true, "prefixes": [{"asn": 15169, "prefix": "8.8.8.0/24", "org": "Google LLC"}], "rir": "ARIN"},
+  "shodan":  {"open_ports": [53, 443], "org": "Google LLC", ...},
+  "dns":     {"ip": "8.8.8.8", "ptr": ["dns.google."]}
+}
+```
+
+---
+
 ## Aggregated enrichment tools
 
 These fan out to all enabled sources in parallel. Sources that aren't configured are silently omitted from the result. The return value is a dict keyed by source name.
