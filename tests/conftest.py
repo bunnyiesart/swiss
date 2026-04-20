@@ -2,23 +2,42 @@ import pytest
 
 
 TEST_CONFIG = {
-    "virustotal":        {"api_key": "vt-test-key",    "enabled": True,  "favorite": True},
-    "abuseipdb":         {"api_key": "abuse-test-key", "enabled": True,  "favorite": True},
-    "greynoise":         {"api_key": "gn-test-key",    "enabled": True,  "favorite": True},
-    "shodan":            {"api_key": "shodan-test-key","enabled": True,  "favorite": True},
-    "ipinfo":            {"api_key": "ipinfo-test-key","enabled": True,  "favorite": False},
-    "ibm_xforce":        {"api_key": "xf-key", "api_password": "xf-pass", "enabled": True, "favorite": False},
-    "alienvault":        {"api_key": "av-key",         "enabled": True,  "favorite": False},
-    "urlscan":           {"api_key": "us-key",         "enabled": True,  "favorite": True},
-    "honeypot":          {"api_key": "abcdefghijkl",   "enabled": True,  "favorite": False},
-    "malwarebazaar":     {"api_key": "",               "enabled": True,  "favorite": True},
-    "threatfox":         {"api_key": "",               "enabled": True,  "favorite": False},
-    "urlhaus":           {"api_key": "",               "enabled": True,  "favorite": False},
-    "misp":              {"url": "https://misp.test", "api_key": "misp-key", "enabled": False, "favorite": True, "verify_ssl": False},
-    "graylog":           {"url": "https://graylog.test", "username": "admin", "password": "pass", "enabled": False, "favorite": False, "verify_ssl": False},
-    "dfir_iris":         {"url": "https://iris.test", "api_key": "iris-key", "enabled": False, "favorite": False, "verify_ssl": False},
-    "wazuh":             {"url": "https://wazuh.test", "username": "admin", "password": "pass", "enabled": False, "favorite": False, "verify_ssl": False},
+    "virustotal":        {"enabled": True,  "favorite": True},
+    "abuseipdb":         {"enabled": True,  "favorite": True},
+    "greynoise":         {"enabled": True,  "favorite": True},
+    "shodan":            {"enabled": True,  "favorite": True},
+    "ipinfo":            {"enabled": True,  "favorite": False},
+    "ibm_xforce":        {"enabled": True,  "favorite": False},
+    "alienvault":        {"enabled": True,  "favorite": False},
+    "urlscan":           {"enabled": True,  "favorite": True},
+    "honeypot":          {"enabled": True,  "favorite": False},
+    "malwarebazaar":     {"enabled": True,  "favorite": True},
+    "threatfox":         {"enabled": True,  "favorite": False},
+    "urlhaus":           {"enabled": True,  "favorite": False},
+    "misp":              {"url": "https://misp.test",    "enabled": False, "favorite": True,  "verify_ssl": False},
+    "graylog":           {"url": "https://graylog.test", "enabled": False, "favorite": False, "verify_ssl": False},
+    "dfir_iris":         {"url": "https://iris.test",    "enabled": False, "favorite": False, "verify_ssl": False},
+    "wazuh":             {"url": "https://wazuh.test",   "enabled": False, "favorite": False, "verify_ssl": False},
     "custom_blacklists": [{"name": "test-bl", "url": "https://bl.test/list.txt", "enabled": True, "favorite": False}],
+}
+
+TEST_SECRETS = {
+    "SWISS_VIRUSTOTAL_API_KEY":    "vt-test-key",
+    "SWISS_ABUSEIPDB_API_KEY":     "abuse-test-key",
+    "SWISS_GREYNOISE_API_KEY":     "gn-test-key",
+    "SWISS_SHODAN_API_KEY":        "shodan-test-key",
+    "SWISS_IPINFO_API_KEY":        "ipinfo-test-key",
+    "SWISS_IBM_XFORCE_API_KEY":    "xf-key",
+    "SWISS_IBM_XFORCE_API_PASSWORD": "xf-pass",
+    "SWISS_ALIENVAULT_API_KEY":    "av-key",
+    "SWISS_URLSCAN_API_KEY":       "us-key",
+    "SWISS_HONEYPOT_API_KEY":      "abcdefghijkl",
+    "SWISS_MISP_API_KEY":          "misp-key",
+    "SWISS_GRAYLOG_USERNAME":      "admin",
+    "SWISS_GRAYLOG_PASSWORD":      "pass",
+    "SWISS_DFIR_IRIS_API_KEY":     "iris-key",
+    "SWISS_WAZUH_USERNAME":        "admin",
+    "SWISS_WAZUH_PASSWORD":        "pass",
 }
 
 
@@ -30,4 +49,6 @@ def mock_config(monkeypatch):
     for key in list(os.environ):
         if key.startswith("SWISS_"):
             monkeypatch.delenv(key)
+    for key, val in TEST_SECRETS.items():
+        monkeypatch.setenv(key, val)
     return TEST_CONFIG

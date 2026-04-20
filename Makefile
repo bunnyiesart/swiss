@@ -1,5 +1,4 @@
-IMAGE  := swiss
-CONFIG ?= $(HOME)/.config/swiss/config.json
+IMAGE := swiss
 
 .PHONY: build test run
 
@@ -14,6 +13,6 @@ test: build
 
 run: build
 	docker run --rm -i \
-	    -v "$(CONFIG):/config/swiss.json:ro" \
-	    -e SWISS_CONFIG_PATH=/config/swiss.json \
+	    -v "$(CURDIR)/config.json:/app/config.json:ro" \
+	    --env-file "$(CURDIR)/.env" \
 	    $(IMAGE)
