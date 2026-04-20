@@ -4,6 +4,29 @@ swiss exposes three categories of MCP tools: aggregated enrichment tools, dedica
 
 ---
 
+## Exposure check
+
+### `check_exposure(host, port=None)`
+
+Check whether a host's service is reachable from the internet.
+
+- **With `port`:** active TCP probe (current reachability + banner grab) + Shodan + Censys
+- **Without `port`:** Shodan and Censys passive scan data only
+
+**Example:**
+```
+check_exposure("example.com", 443)
+```
+```json
+{
+  "probe":  {"reachable": true, "latency_ms": 42.3, "banner": ""},
+  "shodan": {"open_ports": [80, 443], ...},
+  "censys": {"services": [{"port": 443, "service": "HTTPS"}], ...}
+}
+```
+
+---
+
 ## Recon tool
 
 ### `recon(target)`

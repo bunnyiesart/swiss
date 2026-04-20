@@ -328,6 +328,36 @@ Per-integration reference: where to get API keys, tier differences, and what fie
 
 ---
 
+## Censys
+
+**Key:** Requires `api_key` (API ID) and `api_password` (API Secret). Free tier: 250 queries/month.
+
+**Get key:** [search.censys.io](https://search.censys.io/) → account → API
+
+**Methods:** `check_ip(ip)`
+
+**Returned fields:**
+```json
+{
+  "source": "censys",
+  "ip": "8.8.8.8",
+  "found": true,
+  "services": [
+    {"port": 53, "protocol": "UDP", "service": "DNS"},
+    {"port": 443, "protocol": "TCP", "service": "HTTPS"}
+  ],
+  "labels": ["cdn"],
+  "asn": 15169,
+  "org": "Google LLC",
+  "country": "US",
+  "bgp_prefix": "8.8.8.0/24"
+}
+```
+
+*Services capped at 20 entries.*
+
+---
+
 ## crt.sh (Certificate Transparency)
 
 **Key:** None required. Public API.

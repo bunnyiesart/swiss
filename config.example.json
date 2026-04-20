@@ -15,6 +15,7 @@
   "graylog":           {"url": "",        "enabled": false, "favorite": false, "verify_ssl": true},
   "dfir_iris":         {"url": "",        "enabled": false, "favorite": false, "verify_ssl": true},
   "wazuh":             {"url": "",        "enabled": false, "favorite": false, "verify_ssl": true},
+  "censys":            {"enabled": true,  "favorite": false},
   "custom_blacklists": [
     {"name": "", "url": "", "enabled": false, "favorite": false}
   ]

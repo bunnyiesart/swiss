@@ -30,6 +30,7 @@ _DEFAULTS: dict[str, dict] = {
     "dfir_iris":     {"enabled": False, "favorite": False},
     "wazuh":         {"enabled": False, "favorite": False},
     "cymru":         {"enabled": True,  "favorite": True},
+    "censys":        {"enabled": True,  "favorite": False},
 }
 
 

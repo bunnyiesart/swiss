@@ -32,6 +32,8 @@ from lib.maclookup import MACLookup
 from lib.malwarebazaar import MalwareBazaar
 from lib.misp import MISPClient
 from lib.mitre import MITREClient
+from lib.censys import CensysClient
+from lib.exposure import ExposureChecker
 from lib.recon import BGPViewClient, CRTShClient, DNSRecords
 from lib.shodan import Shodan
 from lib.threatfox import ThreatFox
@@ -72,7 +74,7 @@ _vt = _abuse = _gn = _shodan = _ipinfo = _xforce = _av = _urlscan = _honeypot = 
 _mb = _tf = _uh = None
 _misp = _graylog = _iris = _wazuh = None
 _blacklists = _whois_c = _cve_c = _mac_c = _ua_c = _evid_c = _lolbas_c = _mitre_c = None
-_crtsh = _bgpview = _dns_records = None
+_crtsh = _bgpview = _dns_records = _censys = _exposure = None
 _blockchain_c = _decoder = _doh = _feodo = _tor = None
 
 
@@ -309,6 +311,21 @@ def get_dns_records():
     if _dns_records is None:
         _dns_records = DNSRecords()
     return _dns_records
+
+
+def get_censys():
+    global _censys
+    if _censys is None:
+        pair = _key_pair("censys")
+        _censys = CensysClient(*pair) if pair else _unconfigured("censys")
+    return _censys
+
+
+def get_exposure():
+    global _exposure
+    if _exposure is None:
+        _exposure = ExposureChecker()
+    return _exposure
 
 
 def get_decoder():
@@ -645,6 +662,33 @@ def recon(target: str) -> dict:
     else:
         return {"error": f"recon requires an IP or domain, got: {ioc_type}"}
 
+    return _parallel(tasks)
+
+
+@mcp.tool()
+def check_exposure(host: str, port: int = None) -> dict:
+    """Check whether a host's service is exposed to the internet.
+
+    Combines passive scan data (Shodan, Censys) with an optional active
+    TCP probe for current reachability.
+
+    With a port: runs an active TCP probe + Shodan + Censys.
+    Without a port: returns Shodan and Censys passive data only.
+
+    Args:
+        host: IP address or hostname to check.
+        port: TCP port to probe (optional). If omitted, passive only.
+
+    Returns:
+        Dict keyed by source. probe result includes reachable flag,
+        latency_ms, and any grabbed banner.
+    """
+    tasks = {
+        "shodan": (get_shodan().check_ip, host),
+        "censys": (get_censys().check_ip, host),
+    }
+    if port is not None:
+        tasks["probe"] = (get_exposure().probe, host, port)
     return _parallel(tasks)
 
 
