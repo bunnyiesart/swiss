@@ -3,12 +3,13 @@ import os
 from pathlib import Path
 
 _cfg_env = os.environ.get("SWISS_CONFIG_PATH")
-CONFIG_PATH = Path(_cfg_env) if _cfg_env else Path.home() / ".config" / "swiss" / "config.json"
+CONFIG_PATH = Path(_cfg_env) if _cfg_env else Path(__file__).parent.parent / "config.json"
 
 _CFG: dict | None = None
 
-# Default values applied when a service is absent from the user's config file.
-# Mirrors config.example.json so the server works out-of-the-box with sensible defaults.
+# Fields that are secrets — sourced exclusively from env vars, never from config.json.
+_SECRET_FIELDS = ("api_key", "api_password", "username", "password")
+# All credential fields that may appear as SWISS_<SERVICE>_<FIELD> env vars.
 _ENV_FIELDS = ("api_key", "api_password", "url", "username", "password")
 
 _DEFAULTS: dict[str, dict] = {
@@ -34,13 +35,6 @@ _DEFAULTS: dict[str, dict] = {
 def _load_config() -> dict:
     if not CONFIG_PATH.exists():
         return {}
-    mode = CONFIG_PATH.stat().st_mode & 0o177
-    if mode != 0:
-        raise SystemExit(
-            f"[swiss] Config file {CONFIG_PATH} has unsafe permissions "
-            f"(mode {oct(CONFIG_PATH.stat().st_mode & 0o777)}). "
-            "Run: chmod 600 ~/.config/swiss/config.json"
-        )
     with CONFIG_PATH.open() as f:
         return json.load(f)
 
@@ -53,10 +47,16 @@ def _get_cfg() -> dict:
 
 
 def _cfg_raw(service: str) -> dict:
-    """Return config dict for a service, merged with defaults then env vars."""
+    """Return config dict for a service, merged with defaults then env vars.
+
+    Secrets (api_key, api_password, username, password) are sourced exclusively
+    from env vars — never read from config.json.
+    """
     defaults = _DEFAULTS.get(service, {})
     user_cfg = _get_cfg().get(service, {})
-    merged = {**defaults, **user_cfg}
+    # Strip any secrets that may exist in the file — they are not authoritative.
+    filtered_cfg = {k: v for k, v in user_cfg.items() if k not in _SECRET_FIELDS}
+    merged = {**defaults, **filtered_cfg}
     prefix = f"SWISS_{service.upper()}_"
     for field in _ENV_FIELDS:
         val = os.environ.get(f"{prefix}{field.upper()}", "").strip()
