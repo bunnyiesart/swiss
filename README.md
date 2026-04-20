@@ -88,9 +88,9 @@ Fan out to all enabled sources in parallel. Sources that aren't configured are s
 
 | Tool | What it does |
 |---|---|
-| `lookup_ip(ip)` | VirusTotal · AbuseIPDB · GreyNoise · Shodan · IPInfo · IBM X-Force · AlienVault OTX · Project Honeypot · Feodo Tracker · Tor exit · MISP* · Graylog* · DFIR-IRIS* · Wazuh* · custom blacklists* |
+| `lookup_ip(ip)` | VirusTotal · AbuseIPDB · GreyNoise · Shodan · IPInfo · IBM X-Force · AlienVault OTX · Project Honeypot · Feodo Tracker · Tor exit · Team Cymru · MISP* · Graylog* · DFIR-IRIS* · Wazuh* · custom blacklists* |
 | `lookup_domain(domain)` | VirusTotal · AlienVault OTX · WHOIS · urlscan.io · IBM X-Force · MISP* · Graylog* · DFIR-IRIS* · custom blacklists* |
-| `lookup_hash(hash)` | VirusTotal · MalwareBazaar · ThreatFox · IBM X-Force · AlienVault OTX · MISP* · custom blacklists* |
+| `lookup_hash(hash)` | VirusTotal · MalwareBazaar · ThreatFox · IBM X-Force · AlienVault OTX · Team Cymru (MHR, MD5 only) · MISP* · custom blacklists* |
 | `lookup_url(url)` | VirusTotal · urlscan.io · URLhaus · IBM X-Force · MISP* · custom blacklists* |
 | `enrich(ioc)` | Auto-detects type, re-fangs defanged input, dispatches to the right lookup |
 
@@ -100,7 +100,7 @@ Fan out to all enabled sources in parallel. Sources that aren't configured are s
 
 Each favorited integration also gets its own dedicated tool. Calling `abuseipdb("1.2.3.4")` hits only AbuseIPDB — no fan-out overhead.
 
-Default favorites: `virustotal` · `abuseipdb` · `greynoise` · `shodan` · `urlscan` · `malwarebazaar` · `misp` (when enabled)
+Default favorites: `virustotal` · `abuseipdb` · `greynoise` · `shodan` · `urlscan` · `malwarebazaar` · `cymru` · `misp` (when enabled)
 
 Any integration can be favorited in config. See [Favorites](docs/configuration.md#favorites).
 
@@ -108,6 +108,10 @@ Any integration can be favorited in config. See [Favorites](docs/configuration.m
 
 | Tool | What it does |
 |---|---|
+| `detect_waf(url)` | WAF fingerprinting via wafw00f — identifies vendor or flags generic WAF |
+| `check_exposure(host, port)` | TCP probe + Shodan + Censys — is this service reachable from the internet? |
+| `recon(target)` | Passive recon — crt.sh · BGPView · DNS records · WHOIS (domain) or Shodan · PTR (IP) |
+| `lookup_technique(id)` | MITRE ATT&CK technique — tactics, platforms, detection, mitigations |
 | `lookup_cve(cve_id)` | NVD/MITRE lookup — CVSS score, description, CWEs, references |
 | `lookup_mac(mac)` | MAC address manufacturer (maclookup.app) |
 | `lookup_useragent(ua)` | Parse a User-Agent string — offline, ua-parser library |
@@ -133,7 +137,9 @@ Detailed per-integration docs including where to get API keys, tier differences,
 
 **Free keys required:** VirusTotal · AbuseIPDB · GreyNoise · Shodan · IPInfo · AlienVault OTX · urlscan.io · Project Honeypot · MalwareBazaar · ThreatFox · URLhaus (last three share one key from [auth.abuse.ch](https://auth.abuse.ch/))
 
-**Works without any key:** GreyNoise (community tier) · Feodo Tracker · Tor exit check · WHOIS · NVD · maclookup · LOLBas · blockchain · event IDs · decode · DNS-over-HTTPS
+**Works without any key:** GreyNoise (community tier) · Feodo Tracker · Tor exit check · Team Cymru · MITRE ATT&CK · crt.sh · BGPView · WHOIS · NVD · maclookup · LOLBas · blockchain · event IDs · decode · DNS-over-HTTPS · wafw00f
+
+**Optional (paid/free tier):** Censys (250 queries/month free)
 
 **Self-hosted (optional):** MISP · Graylog · DFIR-IRIS · Wazuh
 

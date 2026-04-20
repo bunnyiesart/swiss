@@ -29,6 +29,10 @@ export SWISS_HONEYPOT_API_KEY="..."
 export SWISS_IBM_XFORCE_API_KEY="..."
 export SWISS_IBM_XFORCE_API_PASSWORD="..."
 
+# Censys (api_key = API ID, api_password = API Secret)
+export SWISS_CENSYS_API_KEY="..."
+export SWISS_CENSYS_API_PASSWORD="..."
+
 # abuse.ch (one key covers all three — obtained from auth.abuse.ch)
 export SWISS_MALWAREBAZAAR_API_KEY="..."
 export SWISS_THREATFOX_API_KEY="..."
@@ -67,6 +71,7 @@ export SWISS_WAZUH_PASSWORD="..."
   "graylog":           {"url": "", "username": "", "password": "", "enabled": false, "favorite": false, "verify_ssl": true},
   "dfir_iris":         {"url": "", "api_key": "",   "enabled": false, "favorite": false, "verify_ssl": true},
   "wazuh":             {"url": "", "username": "", "password": "", "enabled": false, "favorite": false, "verify_ssl": true},
+  "censys":            {"api_key": "", "api_password": "", "enabled": true, "favorite": false},
   "custom_blacklists": [
     {"name": "My Blocklist", "url": "https://example.com/blocklist.txt", "enabled": false, "favorite": false}
   ]
@@ -112,6 +117,7 @@ Any integration can be promoted to a dedicated tool by setting `"favorite": true
 | `shodan(ip)` | shodan |
 | `urlscan(target)` | urlscan |
 | `malwarebazaar(hash)` | malwarebazaar |
+| `cymru(ioc)` | cymru |
 | `misp(ioc)` | misp (when `enabled: true`) |
 
 > Graylog, DFIR-IRIS, and Wazuh are intentionally not favorited. Each has its own dedicated MCP server. The swiss integrations are thin supplementary wrappers.

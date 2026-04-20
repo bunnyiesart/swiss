@@ -30,6 +30,14 @@ lib/
   threatfox.py             # check_hash
   urlhaus.py               # check_url / check_host
 
+  # Threat intelligence & recon
+  cymru.py                 # lookup_asn(ip) / check_hash(md5) — Team Cymru DNS services, no key
+  mitre.py                 # lookup(technique_id_or_name) — ATT&CK STIX bundle, TTL cache 24h
+  recon.py                 # CRTShClient / BGPViewClient / DNSRecords — passive recon sources
+  censys.py                # check_ip — Censys v2 API (api_id + api_secret)
+  exposure.py              # probe(host, port) — active TCP probe + banner grab
+  waf.py                   # detect(url) — wafw00f subprocess wrapper
+
   # Private infrastructure wrappers
   misp.py                  # check_ip / check_domain / check_hash / check_url
   graylog.py               # top_events(ioc)
