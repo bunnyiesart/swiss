@@ -502,9 +502,9 @@ def lookup_ip(ip: str) -> dict:
     """Look up an IP address across all enabled threat intelligence sources.
 
     Sources: VirusTotal, AbuseIPDB, GreyNoise, Shodan, IPInfo, IBM X-Force,
-    AlienVault OTX, Project Honeypot, Feodo Tracker (botnet C2), Tor exit check.
-    Private sources (MISP, Graylog, DFIR-IRIS, Wazuh) included when enabled.
-    Custom blacklists checked when configured.
+    AlienVault OTX, Project Honeypot, Feodo Tracker (botnet C2), Tor exit check,
+    Cymru ASN. Private sources (MISP, Graylog, DFIR-IRIS, Wazuh) included when
+    enabled. Custom blacklists checked when configured.
 
     Args:
         ip: IPv4 or IPv6 address to investigate.

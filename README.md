@@ -2,7 +2,7 @@
 
 A [FastMCP](https://github.com/jlowin/fastmcp) server that exposes Blue Team / SOC analyst tools as MCP tools — replacing browser-based lookups with secure, token-efficient MCP calls directly inside Claude.
 
-API keys never pass through Claude. They live in a local config file or environment variables on your machine.
+API keys never pass through Claude. Credentials are set as environment variables on your machine; the config file controls which integrations are active.
 
 ---
 
@@ -34,7 +34,7 @@ cp config.example.json ~/.config/swiss/config.json
 chmod 600 ~/.config/swiss/config.json
 ```
 
-Fill in your API keys (or use [environment variables](docs/configuration.md#environment-variables)), then register with Claude Code by adding this to `~/.claude/mcp.json`:
+Set your API keys as environment variables (e.g. `SWISS_VIRUSTOTAL_API_KEY=...`), then register with Claude Code by adding this to `~/.claude/mcp.json`:
 
 ```json
 {
@@ -65,7 +65,7 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-Create your config file as above, then register with Claude Code:
+Create your config file as above, set credentials as environment variables, then register with Claude Code:
 
 ```json
 {
@@ -127,7 +127,20 @@ Any integration can be favorited in config. See [Favorites](docs/configuration.m
 
 Full reference: [docs/configuration.md](docs/configuration.md)
 
-API keys can be set in `~/.config/swiss/config.json` or via environment variables (`SWISS_VIRUSTOTAL_API_KEY`, etc.). Environment variables take precedence.
+The config file (`~/.config/swiss/config.json`) controls non-secret settings — `enabled`, `favorite`, `url` for private integrations, `verify_ssl`. API keys and passwords are **only** read from environment variables; they are stripped if present in the config file.
+
+Env var format: `SWISS_<SERVICE>_<FIELD>` (all caps). Examples:
+
+```bash
+export SWISS_VIRUSTOTAL_API_KEY="..."
+export SWISS_ABUSEIPDB_API_KEY="..."
+export SWISS_GREYNOISE_API_KEY="..."        # optional — omit for community tier
+export SWISS_MALWAREBAZAAR_API_KEY="..."    # same key covers ThreatFox + URLhaus
+export SWISS_CENSYS_API_KEY="..."           # API ID
+export SWISS_CENSYS_API_PASSWORD="..."      # API Secret
+export SWISS_MISP_URL="https://misp.internal"
+export SWISS_MISP_API_KEY="..."
+```
 
 ---
 
