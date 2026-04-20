@@ -2,7 +2,8 @@ import json
 import os
 from pathlib import Path
 
-CONFIG_PATH = Path.home() / ".config" / "swiss" / "config.json"
+_cfg_env = os.environ.get("SWISS_CONFIG_PATH")
+CONFIG_PATH = Path(_cfg_env) if _cfg_env else Path.home() / ".config" / "swiss" / "config.json"
 
 _CFG: dict | None = None
 
