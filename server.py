@@ -31,6 +31,7 @@ from lib.lolbas import LOLBas
 from lib.maclookup import MACLookup
 from lib.malwarebazaar import MalwareBazaar
 from lib.misp import MISPClient
+from lib.mitre import MITREClient
 from lib.shodan import Shodan
 from lib.threatfox import ThreatFox
 from lib.tor_exit import TorExitNodes
@@ -69,7 +70,7 @@ def _parallel(tasks: dict[str, tuple]) -> dict:
 _vt = _abuse = _gn = _shodan = _ipinfo = _xforce = _av = _urlscan = _honeypot = _cymru = None
 _mb = _tf = _uh = None
 _misp = _graylog = _iris = _wazuh = None
-_blacklists = _whois_c = _cve_c = _mac_c = _ua_c = _evid_c = _lolbas_c = None
+_blacklists = _whois_c = _cve_c = _mac_c = _ua_c = _evid_c = _lolbas_c = _mitre_c = None
 _blockchain_c = _decoder = _doh = _feodo = _tor = None
 
 
@@ -278,6 +279,13 @@ def get_blockchain():
     if _blockchain_c is None:
         _blockchain_c = BlockchainClient()
     return _blockchain_c
+
+
+def get_mitre():
+    global _mitre_c
+    if _mitre_c is None:
+        _mitre_c = MITREClient()
+    return _mitre_c
 
 
 def get_decoder():
@@ -614,6 +622,23 @@ def enrich(ioc: str) -> dict:
 
 
 # ── Utility tools ──────────────────────────────────────────────────────────────
+
+@mcp.tool()
+def lookup_technique(technique_id: str) -> dict:
+    """Look up a MITRE ATT&CK technique by ID or name.
+
+    Uses the enterprise ATT&CK STIX bundle, cached for 24 hours.
+    Revoked and deprecated techniques are excluded.
+
+    Args:
+        technique_id: Technique ID (e.g. T1059, T1059.001) or name (e.g. PowerShell).
+
+    Returns:
+        Technique name, tactics, platforms, description, detection guidance,
+        mitigations, and ATT&CK URL.
+    """
+    return get_mitre().lookup(technique_id.strip())
+
 
 @mcp.tool()
 def lookup_cve(cve_id: str) -> dict:

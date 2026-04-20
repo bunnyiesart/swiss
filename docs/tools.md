@@ -158,6 +158,35 @@ Check any IOC against your MISP instance. Returns matched attributes and event c
 
 These tools do not query threat intel sources — they perform analysis, lookups, or decoding locally or against single authoritative sources.
 
+### `lookup_technique(technique_id)`
+
+Look up a MITRE ATT&CK technique. Uses the enterprise STIX bundle fetched from MITRE's GitHub and cached for 24 hours. Revoked and deprecated techniques are excluded.
+
+**Accepts:** Technique ID (`T1059`, `T1059.001`) or name (`PowerShell`) — case-insensitive.
+
+**Returns:** Name, tactics, platforms, description, detection guidance, mitigations (up to 10), and ATT&CK URL.
+
+**No API key required.**
+
+**Example:** `lookup_technique("T1059.001")`
+
+```json
+{
+  "source": "mitre",
+  "found": true,
+  "id": "T1059.001",
+  "name": "PowerShell",
+  "tactics": ["execution"],
+  "platforms": ["Windows"],
+  "description": "Adversaries may abuse PowerShell...",
+  "detection": "Monitor process execution...",
+  "mitigations": ["Disable or Remove Feature or Program"],
+  "url": "https://attack.mitre.org/techniques/T1059/001/"
+}
+```
+
+---
+
 ### `lookup_cve(cve_id)`
 
 Look up a CVE in the NVD 2.0 database.

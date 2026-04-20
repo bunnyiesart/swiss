@@ -328,6 +328,35 @@ Per-integration reference: where to get API keys, tier differences, and what fie
 
 ---
 
+## MITRE ATT&CK
+
+**Key:** None required. Fetches the enterprise STIX bundle from MITRE's GitHub (`mitre/cti`) and caches it for 24 hours.
+
+**Methods:** `lookup(technique_id_or_name)`
+
+**Returned fields:**
+```json
+{
+  "source": "mitre",
+  "found": true,
+  "id": "T1059.001",
+  "name": "PowerShell",
+  "tactics": ["execution"],
+  "platforms": ["Windows"],
+  "description": "Adversaries may abuse PowerShell...",
+  "detection": "Monitor process execution of PowerShell.",
+  "mitigations": ["Disable or Remove Feature or Program"],
+  "url": "https://attack.mitre.org/techniques/T1059/001/"
+}
+```
+
+**Notes:**
+- Revoked and deprecated techniques are excluded from the index.
+- The first call fetches ~20 MB from GitHub; subsequent calls within 24 hours use the in-memory cache.
+- Mitigations are capped at 10 entries.
+
+---
+
 ## Team Cymru
 
 **Key:** None required. Uses Team Cymru's free DNS-based services via DNS-over-HTTPS.
