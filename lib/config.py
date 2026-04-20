@@ -29,6 +29,7 @@ _DEFAULTS: dict[str, dict] = {
     "graylog":       {"enabled": False, "favorite": False},
     "dfir_iris":     {"enabled": False, "favorite": False},
     "wazuh":         {"enabled": False, "favorite": False},
+    "cymru":         {"enabled": True,  "favorite": True},
 }
 
 

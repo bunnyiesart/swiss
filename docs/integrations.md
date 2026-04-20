@@ -328,6 +328,44 @@ Per-integration reference: where to get API keys, tier differences, and what fie
 
 ---
 
+## Team Cymru
+
+**Key:** None required. Uses Team Cymru's free DNS-based services via DNS-over-HTTPS.
+
+**Methods:** `lookup_asn(ip)` · `check_hash(md5)`
+
+**How it works:**
+- ASN lookup: TXT query to `<reversed-ip>.origin.asn.cymru.com`, then `AS<n>.asn.cymru.com` for org name. IPv4 and IPv6 supported (IPv6 uses `origin6.asn.cymru.com`).
+- MHR: TXT query to `<md5>.malware.hash.cymru.com`. MD5 only — SHA1/SHA256 return `{"error": "md5_only"}`.
+
+**Returned fields (IP):**
+```json
+{
+  "source": "cymru",
+  "ip": "8.8.8.8",
+  "found": true,
+  "asn": "15169",
+  "prefix": "8.8.8.0/24",
+  "country": "US",
+  "registry": "arin",
+  "allocated": "1992-12-01",
+  "org": "Google LLC"
+}
+```
+
+**Returned fields (hash, found):**
+```json
+{
+  "source": "cymru",
+  "hash": "44d88612fea8a8f36de82e1278abb02f",
+  "found": true,
+  "last_seen": "2024-01-15T10:22:00Z",
+  "detection_pct": 100
+}
+```
+
+---
+
 ## Feodo Tracker
 
 **Key:** None required.

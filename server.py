@@ -5,6 +5,7 @@ from fastmcp import FastMCP
 from lib.abuseipdb import AbuseIPDB
 from lib.alienvault import AlienVault
 from lib.blockchain import BlockchainClient
+from lib.cymru import Cymru
 from lib.cache import TTLCache
 from lib.config import (
     _cfg_raw,
@@ -65,7 +66,7 @@ def _parallel(tasks: dict[str, tuple]) -> dict:
 
 # ── Lazy singletons ────────────────────────────────────────────────────────────
 
-_vt = _abuse = _gn = _shodan = _ipinfo = _xforce = _av = _urlscan = _honeypot = None
+_vt = _abuse = _gn = _shodan = _ipinfo = _xforce = _av = _urlscan = _honeypot = _cymru = None
 _mb = _tf = _uh = None
 _misp = _graylog = _iris = _wazuh = None
 _blacklists = _whois_c = _cve_c = _mac_c = _ua_c = _evid_c = _lolbas_c = None
@@ -176,6 +177,13 @@ def get_tor():
     if _tor is None:
         _tor = TorExitNodes()
     return _tor
+
+
+def get_cymru():
+    global _cymru
+    if _cymru is None:
+        _cymru = Cymru()
+    return _cymru
 
 
 def get_misp():
@@ -382,6 +390,29 @@ def _register_favorites():
             return get_mb().check_hash(hash)
         mcp.add_tool(malwarebazaar)
 
+    if _cfg_raw("cymru").get("favorite") and _cfg_raw("cymru").get("enabled", True):
+        def cymru(ioc: str) -> dict:
+            """Query Team Cymru for ASN origin (IP) or malware hash check (MD5).
+
+            Uses Team Cymru's free DNS-based services — no API key required.
+
+            Args:
+                ioc: IPv4/IPv6 address for ASN lookup, or MD5 hash for MHR check.
+
+            Returns:
+                ASN, prefix, country, registry, org for IPs; last_seen and
+                detection_pct for MD5 hashes.
+            """
+            normalized = _normalize_ioc(ioc.strip())
+            ioc_type = detect_ioc_type(normalized)
+            c = get_cymru()
+            if ioc_type == "ip":
+                return c.lookup_asn(normalized)
+            if ioc_type == "md5":
+                return c.check_hash(normalized)
+            return {"source": "cymru", "error": f"unsupported ioc type: {ioc_type} (ip or md5 only)"}
+        mcp.add_tool(cymru)
+
     if _cfg_raw("misp").get("favorite") and _cfg_raw("misp").get("enabled", False):
         def misp(ioc: str) -> dict:
             """Search your MISP instance for an IOC.
@@ -442,6 +473,7 @@ def lookup_ip(ip: str) -> dict:
         "alienvault": (get_av().check_ip, ip),
         "feodo":      (get_feodo().check_ip, ip),
         "tor_exit":   (get_tor().check_ip, ip),
+        "cymru":      (get_cymru().lookup_asn, ip),
         "misp":       (get_misp().check_ip, ip),
         "graylog":    (get_graylog().top_events, ip),
         "dfir_iris":  (get_iris().related_cases, ip),
@@ -511,6 +543,8 @@ def lookup_hash(hash: str) -> dict:
         "misp":          (get_misp().check_hash, hash),
         "dfir_iris":     (get_iris().related_cases, hash),
     }
+    if len(hash) == 32:  # MHR only supports MD5
+        tasks["cymru"] = (get_cymru().check_hash, hash)
     results = _parallel(tasks)
     bl = get_blacklists().check(hash)
     if bl:

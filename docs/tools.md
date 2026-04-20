@@ -12,7 +12,7 @@ These fan out to all enabled sources in parallel. Sources that aren't configured
 
 Investigate an IP address across all enabled threat intelligence sources.
 
-**Sources:** VirusTotal · AbuseIPDB · GreyNoise · Shodan · IPInfo · IBM X-Force · AlienVault OTX · Project Honeypot · Feodo Tracker · Tor exit check · MISP* · Graylog* · DFIR-IRIS* · Wazuh* · custom blacklists*
+**Sources:** VirusTotal · AbuseIPDB · GreyNoise · Shodan · IPInfo · IBM X-Force · AlienVault OTX · Project Honeypot · Feodo Tracker · Tor exit check · Team Cymru · MISP* · Graylog* · DFIR-IRIS* · Wazuh* · custom blacklists*
 
 *private — only included when `enabled: true` in config*
 
@@ -55,7 +55,7 @@ lookup_domain("evil-phishing.com")
 
 Look up a file hash across all enabled threat intelligence sources.
 
-**Sources:** VirusTotal · MalwareBazaar · ThreatFox · IBM X-Force · AlienVault OTX · MISP* · custom blacklists*
+**Sources:** VirusTotal · MalwareBazaar · ThreatFox · IBM X-Force · AlienVault OTX · Team Cymru (MHR, MD5 only) · MISP* · custom blacklists*
 
 **Accepts:** MD5 (32 hex) · SHA1 (40 hex) · SHA256 (64 hex)
 
@@ -138,6 +138,15 @@ Submit a domain or URL to urlscan.io. History-first: checks for an existing scan
 ### `malwarebazaar(hash)`
 
 Look up a file hash (MD5/SHA1/SHA256) on MalwareBazaar. Returns file name, type, size, signature (malware family), tags, and ClamAV detections.
+
+### `cymru(ioc)`
+
+Query Team Cymru's free DNS-based services. No API key required.
+
+- **IP** → ASN origin lookup: ASN number, announced prefix, country, registry, allocation date, and org name
+- **MD5 hash** → Malware Hash Registry (MHR): last seen date and AV detection percentage across Cymru's sensor network
+
+Other IOC types return an unsupported error.
 
 ### `misp(ioc)` *(private, when enabled)*
 
