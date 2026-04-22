@@ -1,5 +1,8 @@
 # swiss
 
+[![CI](https://github.com/bunnyiesart/swiss/actions/workflows/ci.yml/badge.svg)](https://github.com/bunnyiesart/swiss/actions/workflows/ci.yml)
+[![ghcr.io](https://img.shields.io/badge/ghcr.io-bunnyiesart%2Fswiss-blue)](https://github.com/bunnyiesart/swiss/pkgs/container/swiss)
+
 A [FastMCP](https://github.com/jlowin/fastmcp) server that exposes Blue Team / SOC analyst tools as MCP tools — replacing browser-based lookups with secure, token-efficient MCP calls directly inside Claude.
 
 API keys never pass through Claude. Credentials are set as environment variables on your machine; the config file controls which integrations are active.
@@ -20,17 +23,18 @@ swiss fans out to all configured sources in parallel and returns a single struct
 
 ## Quick start (Docker)
 
+Pull the pre-built image from GitHub Container Registry:
+
 ```bash
-git clone https://github.com/yourusername/swiss
-cd swiss
-make build
+docker pull ghcr.io/bunnyiesart/swiss:latest
 ```
 
 Create your config file:
 
 ```bash
 mkdir -p ~/.config/swiss
-cp config.example.json ~/.config/swiss/config.json
+curl -sL https://raw.githubusercontent.com/bunnyiesart/swiss/main/config.example.json \
+  > ~/.config/swiss/config.json
 chmod 600 ~/.config/swiss/config.json
 ```
 
@@ -45,7 +49,7 @@ Set your API keys as environment variables (e.g. `SWISS_VIRUSTOTAL_API_KEY=...`)
         "run", "--rm", "-i",
         "-v", "/home/you/.config/swiss/config.json:/config/swiss.json:ro",
         "-e", "SWISS_CONFIG_PATH=/config/swiss.json",
-        "swiss"
+        "ghcr.io/bunnyiesart/swiss:latest"
       ]
     }
   }
@@ -59,7 +63,7 @@ Replace `/home/you/...` with the absolute path to your config file. `-i` (not `-
 ## Quick start (local venv)
 
 ```bash
-git clone https://github.com/yourusername/swiss
+git clone https://github.com/bunnyiesart/swiss
 cd swiss
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
