@@ -24,6 +24,8 @@ _HASH_RESPONSE = {
         "md5": "d41d8cd98f00b204e9800998ecf8427e",
         "sha1": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "first_submission_date": 1704067200,
+        "last_submission_date":  1704153600,
         "tags": ["trojan"],
     }}
 }
@@ -68,6 +70,8 @@ def test_check_hash_happy_path():
     assert result["source"] == "virustotal"
     assert result["malicious"] == 20
     assert result["name"] == "malware.exe"
+    assert result["first_seen"] == 1704067200
+    assert result["last_seen"]  == 1704153600
     assert "error" not in result
 
 
@@ -79,11 +83,14 @@ def test_check_url_happy_path():
     resp_lib.add(resp_lib.GET, f"{BASE}/urls/{url_id}", json={
         "data": {"attributes": {
             "last_analysis_stats": {"malicious": 2, "suspicious": 0, "harmless": 50, "undetected": 5},
-            "url": url, "tags": [],
+            "url": url, "title": "Evil Site", "last_final_url": "https://evil.com/redirect",
+            "tags": [],
         }}
     }, status=200)
     vt = VirusTotal("test-key")
     result = vt.check_url(url)
     assert result["source"] == "virustotal"
     assert result["malicious"] == 2
+    assert result["title"] == "Evil Site"
+    assert result["final_url"] == "https://evil.com/redirect"
     assert "error" not in result

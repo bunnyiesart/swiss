@@ -52,7 +52,7 @@ def _fetch_index() -> dict:
     if cached is not None:
         return cached
     s = requests.Session()
-    retry = Retry(total=3, backoff_factor=2, status_forcelist=[502, 503, 504])
+    retry = Retry(total=3, backoff_factor=1, status_forcelist=[502, 503, 504])
     s.mount("https://", HTTPAdapter(max_retries=retry))
     r = s.get(_URL, timeout=60)
     r.raise_for_status()

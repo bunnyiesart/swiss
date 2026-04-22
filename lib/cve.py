@@ -8,7 +8,7 @@ BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 class CVEClient:
     def __init__(self):
         self._session = requests.Session()
-        retry = Retry(total=3, backoff_factor=2, status_forcelist=[503, 504])
+        retry = Retry(total=3, backoff_factor=1, status_forcelist=[502, 503, 504])
         self._session.mount("https://", HTTPAdapter(max_retries=retry))
 
     def lookup(self, cve_id: str) -> dict:
