@@ -6,6 +6,7 @@
 server.py                  # FastMCP entry point — lazy singletons, _parallel(), tool registration
 requirements.txt
 config.example.json
+ROADMAP.md
 data/
   eventids.json            # Bundled event ID table — no network call
 lib/
@@ -22,7 +23,7 @@ lib/
   ipinfo.py                # check_ip
   ibm_xforce.py            # check_ip / check_domain / check_hash / check_url
   alienvault.py            # check_ip / check_domain / check_hash
-  urlscan.py               # check_domain / check_url (history-first, async poll)
+  urlscan.py               # check_domain / check_url (history-first, synchronous poll with sleep)
   honeypot.py              # check_ip — DNS-based, socket only
   feodo.py                 # check_ip — JSON blocklist + TTL cache
   tor_exit.py              # check_ip — bulk list + TTL cache

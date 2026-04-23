@@ -23,14 +23,14 @@ Per-integration reference: where to get API keys, tier differences, and what fie
   "country": "DE",
   "asn": 51167,
   "as_owner": "Contabo GmbH",
-  "tags": ["tor"],
-  "last_analysis_date": "2024-01-15T12:00:00"
+  "reputation": -10,
+  "tags": ["tor"]
 }
 ```
 
-**Returned fields (hash):** adds `name`, `type_description`, `size`, `meaningful_name`, `popular_threat_classification`
+**Returned fields (hash):** adds `name` (meaningful name), `type_description`, `size`, `md5`, `sha1`, `sha256`, `first_seen`, `last_seen`, `tags`
 
-**Returned fields (URL):** adds `url`, `title`, `final_url`, `last_final_url`
+**Returned fields (URL):** adds `url`, `title`, `final_url` (resolved destination URL), `tags`
 
 ---
 
@@ -139,14 +139,16 @@ Per-integration reference: where to get API keys, tier differences, and what fie
   "region": "Ontario",
   "country": "CA",
   "org": "AS3257 GTT Communications Inc.",
+  "asn": null,
   "timezone": "America/Toronto",
   "is_vpn": false,
   "is_proxy": false,
-  "is_tor": false
+  "is_tor": false,
+  "is_hosting": false
 }
 ```
 
-*Privacy fields (`is_vpn`, `is_proxy`, `is_tor`) only appear on paid tiers.*
+*Privacy fields (`is_vpn`, `is_proxy`, `is_tor`, `is_hosting`) only appear on paid tiers — they are `null` on the free/keyless tier.*
 
 ---
 
@@ -154,7 +156,9 @@ Per-integration reference: where to get API keys, tier differences, and what fie
 
 **Key:** Requires both `api_key` and `api_password` (Basic Auth pair).
 
-**Get key:** [ibm.com](https://exchange.xforce.ibmcloud.com/) → sign in with IBM ID → API access
+**Tier:** Free community tier available — create an IBM ID at [ibm.com](https://www.ibm.com/account/reg/us-en/signup) and activate API access. No credit card required. Rate limits apply (approx. 5,000 requests/month on the free tier). Paid plans lift rate limits and add premium intelligence feeds.
+
+**Get key:** [exchange.xforce.ibmcloud.com](https://exchange.xforce.ibmcloud.com/) → sign in with IBM ID → Settings → API access → generate key + password
 
 **Methods:** `check_ip` · `check_domain` · `check_hash` · `check_url`
 
@@ -214,26 +218,32 @@ Per-integration reference: where to get API keys, tier differences, and what fie
   "ip": "1.2.3.4",
   "country": "DE",
   "title": "Login - My Bank",
-  "server": "nginx",
+  "status": 200,
+  "malicious": true,
+  "score": 85,
+  "tags": ["phishing"],
   "screenshot": "https://urlscan.io/screenshots/...",
-  "verdict_score": 85,
-  "verdict_malicious": true,
-  "brands": ["PayPal"],
-  "scan_date": "2024-01-15T12:00:00"
+  "report_url": "https://urlscan.io/result/uuid/",
+  "scanned_at": "2024-01-15T12:00:00",
+  "requests_total": 42
 }
 ```
+
+When a new scan is submitted but hasn't finished within 30 s, returns `{"source": "urlscan", "pending": true, "uuid": "..."}` instead.
 
 ---
 
 ## Project Honeypot (HTTP:BL)
 
-**Key:** Required. Free.
+**Key:** Required. Free — no credit card, no paid tier.
 
-**Get key:** [projecthoneypot.org](https://www.projecthoneypot.org/) → sign up → HTTP:BL access key
+**Get key:** [projecthoneypot.org](https://www.projecthoneypot.org/) → sign up → My Account → HTTP:BL access key
+
+**Key format:** Exactly 12 lowercase letters (e.g. `abcdefghijkl`). The server rejects keys that don't match this format and returns `{"error": "invalid_api_key_format"}`.
 
 **Methods:** `check_ip` (IPv4 only — IPv6 returns `{"error": "ipv6_not_supported"}`)
 
-**How it works:** DNS-based lookup — reverses the IP octets, prepends the API key, queries `{key}.{reversed_ip}.dnsbl.httpbl.org`. No HTTP requests.
+**How it works:** DNS-based lookup — reverses the IP octets, prepends the API key, queries `{key}.{reversed_ip}.dnsbl.httpbl.org`. No HTTP requests made; resolution is handled by the OS resolver.
 
 **Returned fields:**
 ```json
@@ -322,7 +332,21 @@ Per-integration reference: where to get API keys, tier differences, and what fie
   "threat": "malware_download",
   "tags": ["exe", "Emotet"],
   "date_added": "2024-01-10 08:00:00",
-  "reporter": "abuse_ch"
+  "reporter": "abuse_ch",
+  "urls_count": 1
+}
+```
+
+**Returned fields (host, found):**
+```json
+{
+  "source": "urlhaus",
+  "found": true,
+  "urls_count": 5,
+  "blacklists": {"surbl": "listed", "gsb": "not listed"},
+  "recent_urls": [
+    {"url": "https://evil.com/malware.exe", "status": "online", "threat": "malware_download"}
+  ]
 }
 ```
 

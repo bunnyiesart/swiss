@@ -10,37 +10,57 @@ cp config.example.json ~/.config/swiss/config.json
 chmod 600 ~/.config/swiss/config.json
 ```
 
+## Start here
+
+Not all integrations need an API key. The table below shows what you get for free, what needs a quick sign-up, and what is optional.
+
+| Tier | Services | What to do |
+|---|---|---|
+| **No key required** | GreyNoise (community), Feodo Tracker, Tor exit, Team Cymru, MITRE ATT&CK, crt.sh, BGPView, WHOIS, NVD, LOLBas, decode, DNS-over-HTTPS | Nothing — these activate automatically |
+| **Free key, ~2 min** | VirusTotal, AbuseIPDB, AlienVault OTX, urlscan.io | Sign up at each site, copy the API key |
+| **Free key, shared** | MalwareBazaar + ThreatFox + URLhaus | One registration at [auth.abuse.ch](https://auth.abuse.ch/) — same key for all three |
+| **Free key, ~5 min** | Shodan, Project Honeypot, IBM X-Force | Sign up; IBM X-Force requires a free IBM ID (no credit card) |
+| **Optional / tiered** | GreyNoise (enterprise), IPInfo, Censys | Work without a key; adding one unlocks more data or higher rate limits |
+| **Self-hosted** | MISP, Graylog, DFIR-IRIS, Wazuh | Disabled by default — enable once you have the URL and credentials |
+
 ## Environment variables
 
-Every credential field can be set via environment variable instead of (or in addition to) the config file. Environment variables take precedence over the config file.
+Every credential is set via environment variable. Environment variables take precedence over the config file and are the **only** authoritative source for API keys and passwords — secrets written directly into `config.json` are stripped at load time.
 
 Naming convention: `SWISS_<SERVICE>_<FIELD>` — all uppercase, underscores preserved.
 
 ```bash
-# Public integrations
-export SWISS_VIRUSTOTAL_API_KEY="..."
-export SWISS_ABUSEIPDB_API_KEY="..."
-export SWISS_GREYNOISE_API_KEY="..."       # optional — omit for community tier
-export SWISS_SHODAN_API_KEY="..."
-export SWISS_IPINFO_API_KEY="..."
-export SWISS_ALIENVAULT_API_KEY="..."
-export SWISS_URLSCAN_API_KEY="..."
-export SWISS_HONEYPOT_API_KEY="..."
-export SWISS_IBM_XFORCE_API_KEY="..."
-export SWISS_IBM_XFORCE_API_PASSWORD="..."
+export SWISS_CONFIG_PATH="$HOME/.config/swiss/config.json"   # required for venv setup
 
-# Censys (api_key = API ID, api_password = API Secret)
-export SWISS_CENSYS_API_KEY="..."
-export SWISS_CENSYS_API_PASSWORD="..."
+# ── Free keys — register once, use forever ────────────────────────────────────
+export SWISS_VIRUSTOTAL_API_KEY="..."        # virustotal.com → sign in → profile → API key
+export SWISS_ABUSEIPDB_API_KEY="..."         # abuseipdb.com → sign in → API
+export SWISS_ALIENVAULT_API_KEY="..."        # otx.alienvault.com → sign up → settings → API key
+export SWISS_URLSCAN_API_KEY="..."           # urlscan.io → sign up → settings → API key
 
-# abuse.ch (one key covers all three — obtained from auth.abuse.ch)
-export SWISS_MALWAREBAZAAR_API_KEY="..."
-export SWISS_THREATFOX_API_KEY="..."
-export SWISS_URLHAUS_API_KEY="..."
+# MalwareBazaar, ThreatFox, and URLhaus share ONE key — register once at auth.abuse.ch:
+export SWISS_MALWAREBAZAAR_API_KEY="..."     # auth.abuse.ch → sign up → copy key
+export SWISS_THREATFOX_API_KEY="..."         # same key as above
+export SWISS_URLHAUS_API_KEY="..."           # same key as above
 
-# Private integrations
+# ── Free with registration ────────────────────────────────────────────────────
+export SWISS_SHODAN_API_KEY="..."            # shodan.io → sign up → account overview
+export SWISS_HONEYPOT_API_KEY="..."          # projecthoneypot.org → My Account → HTTP:BL
+                                             # must be exactly 12 lowercase letters
+export SWISS_IBM_XFORCE_API_KEY="..."        # exchange.xforce.ibmcloud.com → Settings → API access
+export SWISS_IBM_XFORCE_API_PASSWORD="..."   # API secret (not your login password) — generated alongside the key above
+                                             # requires a free IBM ID — no credit card needed
+
+# ── Optional / tiered ─────────────────────────────────────────────────────────
+export SWISS_GREYNOISE_API_KEY="..."         # greynoise.io — omit to use the free community tier
+export SWISS_IPINFO_API_KEY="..."            # ipinfo.io — omit for 50k req/month keyless tier
+export SWISS_CENSYS_API_KEY="..."            # search.censys.io → account → API  (API ID)
+export SWISS_CENSYS_API_PASSWORD="..."       # API Secret — generated alongside the API ID above
+                                             # 250 queries/month on the free tier
+
+# ── Private / self-hosted ─────────────────────────────────────────────────────
 export SWISS_MISP_URL="https://misp.internal"
-export SWISS_MISP_API_KEY="..."
+export SWISS_MISP_API_KEY="..."              # MISP → Administration → Auth Keys
 export SWISS_GRAYLOG_URL="https://graylog.internal"
 export SWISS_GRAYLOG_USERNAME="..."
 export SWISS_GRAYLOG_PASSWORD="..."
@@ -53,25 +73,28 @@ export SWISS_WAZUH_PASSWORD="..."
 
 ## Full schema
 
+> **Secrets are env-var only.** Fields named `api_key`, `api_password`, `username`, and `password` are stripped from the config file at load time and ignored — set them exclusively via `SWISS_<SERVICE>_<FIELD>` environment variables. Only `enabled`, `favorite`, `url`, and `verify_ssl` are read from the file.
+
 ```json
 {
-  "virustotal":        {"api_key": "",  "enabled": true,  "favorite": true},
-  "abuseipdb":         {"api_key": "",  "enabled": true,  "favorite": true},
-  "greynoise":         {"api_key": "",  "enabled": true,  "favorite": true},
-  "shodan":            {"api_key": "",  "enabled": true,  "favorite": true},
-  "ipinfo":            {"api_key": "",  "enabled": true,  "favorite": false},
-  "ibm_xforce":        {"api_key": "",  "api_password": "", "enabled": true, "favorite": false},
-  "alienvault":        {"api_key": "",  "enabled": true,  "favorite": false},
-  "urlscan":           {"api_key": "",  "enabled": true,  "favorite": true},
-  "honeypot":          {"api_key": "",  "enabled": true,  "favorite": false},
-  "malwarebazaar":     {"api_key": "",  "enabled": true,  "favorite": true},
-  "threatfox":         {"api_key": "",  "enabled": true,  "favorite": false},
-  "urlhaus":           {"api_key": "",  "enabled": true,  "favorite": false},
-  "misp":              {"url": "", "api_key": "",   "enabled": false, "favorite": true,  "verify_ssl": true},
-  "graylog":           {"url": "", "username": "", "password": "", "enabled": false, "favorite": false, "verify_ssl": true},
-  "dfir_iris":         {"url": "", "api_key": "",   "enabled": false, "favorite": false, "verify_ssl": true},
-  "wazuh":             {"url": "", "username": "", "password": "", "enabled": false, "favorite": false, "verify_ssl": true},
-  "censys":            {"api_key": "", "api_password": "", "enabled": true, "favorite": false},
+  "virustotal":        {"enabled": true,  "favorite": true},
+  "abuseipdb":         {"enabled": true,  "favorite": true},
+  "greynoise":         {"enabled": true,  "favorite": true},
+  "shodan":            {"enabled": true,  "favorite": true},
+  "ipinfo":            {"enabled": true,  "favorite": false},
+  "ibm_xforce":        {"enabled": true,  "favorite": false},
+  "alienvault":        {"enabled": true,  "favorite": false},
+  "urlscan":           {"enabled": true,  "favorite": true},
+  "honeypot":          {"enabled": true,  "favorite": false},
+  "malwarebazaar":     {"enabled": true,  "favorite": true},
+  "threatfox":         {"enabled": true,  "favorite": false},
+  "urlhaus":           {"enabled": true,  "favorite": false},
+  "cymru":             {"enabled": true,  "favorite": true},
+  "censys":            {"enabled": true,  "favorite": false},
+  "misp":              {"url": "", "enabled": false, "favorite": true,  "verify_ssl": true},
+  "graylog":           {"url": "", "enabled": false, "favorite": false, "verify_ssl": true},
+  "dfir_iris":         {"url": "", "enabled": false, "favorite": false, "verify_ssl": true},
+  "wazuh":             {"url": "", "enabled": false, "favorite": false, "verify_ssl": true},
   "custom_blacklists": [
     {"name": "My Blocklist", "url": "https://example.com/blocklist.txt", "enabled": false, "favorite": false}
   ]

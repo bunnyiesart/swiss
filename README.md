@@ -23,6 +23,8 @@ swiss fans out to all configured sources in parallel and returns a single struct
 
 ## Quick start (Docker)
 
+> **No API keys needed to start.** GreyNoise, Feodo Tracker, Tor exit, Team Cymru, MITRE ATT&CK, WHOIS, and several other sources work out of the box. Add keys incrementally — each one unlocks more sources.
+
 Pull the pre-built image from GitHub Container Registry:
 
 ```bash
@@ -38,7 +40,7 @@ curl -sL https://raw.githubusercontent.com/bunnyiesart/swiss/main/config.example
 chmod 600 ~/.config/swiss/config.json
 ```
 
-Set your API keys as environment variables (e.g. `SWISS_VIRUSTOTAL_API_KEY=...`), then register with Claude Code by adding this to `~/.claude/mcp.json`:
+Set your API keys as environment variables, then register with Claude Code by adding this to `~/.claude/mcp.json`:
 
 ```json
 {
@@ -49,6 +51,10 @@ Set your API keys as environment variables (e.g. `SWISS_VIRUSTOTAL_API_KEY=...`)
         "run", "--rm", "-i",
         "-v", "/home/you/.config/swiss/config.json:/config/swiss.json:ro",
         "-e", "SWISS_CONFIG_PATH=/config/swiss.json",
+        "-e", "SWISS_VIRUSTOTAL_API_KEY=your-key",
+        "-e", "SWISS_ABUSEIPDB_API_KEY=your-key",
+        "-e", "SWISS_GREYNOISE_API_KEY=your-key",
+        "-e", "SWISS_SHODAN_API_KEY=your-key",
         "ghcr.io/bunnyiesart/swiss:latest"
       ]
     }
@@ -56,11 +62,13 @@ Set your API keys as environment variables (e.g. `SWISS_VIRUSTOTAL_API_KEY=...`)
 }
 ```
 
-Replace `/home/you/...` with the absolute path to your config file. `-i` (not `-t`) is required for stdio MCP transport. Restart Claude Code after updating `mcp.json`, then call `lookup_ip("8.8.8.8")` to verify.
+Add one `-e` line per API key you want to use. **API keys must be passed as `-e` flags** — they are intentionally stripped from the config file and only read from environment variables. Replace `/home/you/...` with the absolute path to your config file. `-i` (not `-t`) is required for stdio MCP transport. Restart Claude Code after updating `mcp.json`, then call `lookup_ip("8.8.8.8")` to verify.
 
 ---
 
 ## Quick start (local venv)
+
+> **No API keys needed to start.** Same as above — add keys incrementally as you need each source.
 
 ```bash
 git clone https://github.com/bunnyiesart/swiss
@@ -69,7 +77,25 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-Create your config file as above, set credentials as environment variables, then register with Claude Code:
+Create your config file:
+
+```bash
+mkdir -p ~/.config/swiss
+curl -sL https://raw.githubusercontent.com/bunnyiesart/swiss/main/config.example.json \
+  > ~/.config/swiss/config.json
+chmod 600 ~/.config/swiss/config.json
+```
+
+Set your API keys and config path as environment variables — add these to your shell profile (`.bashrc` / `.zshrc`):
+
+```bash
+export SWISS_CONFIG_PATH="$HOME/.config/swiss/config.json"
+export SWISS_VIRUSTOTAL_API_KEY="..."
+export SWISS_ABUSEIPDB_API_KEY="..."
+# ... other keys
+```
+
+Then register with Claude Code:
 
 ```json
 {
@@ -81,6 +107,8 @@ Create your config file as above, set credentials as environment variables, then
   }
 }
 ```
+
+> `SWISS_CONFIG_PATH` is required for the venv setup — without it the server looks for `config.json` in the project root, not in `~/.config/swiss/`.
 
 ---
 
@@ -133,17 +161,52 @@ Full reference: [docs/configuration.md](docs/configuration.md)
 
 The config file (`~/.config/swiss/config.json`) controls non-secret settings — `enabled`, `favorite`, `url` for private integrations, `verify_ssl`. API keys and passwords are **only** read from environment variables; they are stripped if present in the config file.
 
-Env var format: `SWISS_<SERVICE>_<FIELD>` (all caps). Examples:
+Env var format: `SWISS_<SERVICE>_<FIELD>` (all caps). **Secrets set in `config.json` are stripped and ignored** — environment variables are the only authoritative source for API keys and passwords.
 
 ```bash
-export SWISS_VIRUSTOTAL_API_KEY="..."
-export SWISS_ABUSEIPDB_API_KEY="..."
-export SWISS_GREYNOISE_API_KEY="..."        # optional — omit for community tier
-export SWISS_MALWAREBAZAAR_API_KEY="..."    # same key covers ThreatFox + URLhaus
-export SWISS_CENSYS_API_KEY="..."           # API ID
-export SWISS_CENSYS_API_PASSWORD="..."      # API Secret
+export SWISS_CONFIG_PATH="$HOME/.config/swiss/config.json"   # required for venv setup
+
+# ── Works with no key ─────────────────────────────────────────────────────────
+# GreyNoise (community tier), Feodo Tracker, Tor exit check, Team Cymru,
+# MITRE ATT&CK, crt.sh, BGPView, WHOIS, NVD, LOLBas, decode, DNS-over-HTTPS
+# activate automatically — no registration needed.
+
+# ── Free keys — register once, use forever ────────────────────────────────────
+export SWISS_VIRUSTOTAL_API_KEY="..."        # virustotal.com → sign in → profile → API key
+export SWISS_ABUSEIPDB_API_KEY="..."         # abuseipdb.com → sign in → API
+export SWISS_ALIENVAULT_API_KEY="..."        # otx.alienvault.com → sign up → settings → API key
+export SWISS_URLSCAN_API_KEY="..."           # urlscan.io → sign up → settings → API key
+
+# MalwareBazaar, ThreatFox, and URLhaus share ONE key — register once at auth.abuse.ch:
+export SWISS_MALWAREBAZAAR_API_KEY="..."     # auth.abuse.ch → sign up → copy key
+export SWISS_THREATFOX_API_KEY="..."         # same key as above
+export SWISS_URLHAUS_API_KEY="..."           # same key as above
+
+# ── Free with registration ────────────────────────────────────────────────────
+export SWISS_SHODAN_API_KEY="..."            # shodan.io → sign up → account overview
+export SWISS_HONEYPOT_API_KEY="..."          # projecthoneypot.org → My Account → HTTP:BL
+                                             # must be exactly 12 lowercase letters
+export SWISS_IBM_XFORCE_API_KEY="..."        # exchange.xforce.ibmcloud.com → Settings → API access
+export SWISS_IBM_XFORCE_API_PASSWORD="..."   # API secret (not your login password) — generated alongside the key above
+                                             # requires a free IBM ID — no credit card needed
+
+# ── Optional / tiered ─────────────────────────────────────────────────────────
+export SWISS_GREYNOISE_API_KEY="..."         # greynoise.io — omit to use the free community tier
+export SWISS_IPINFO_API_KEY="..."            # ipinfo.io — omit for 50k req/month keyless tier
+export SWISS_CENSYS_API_KEY="..."            # search.censys.io → account → API (250 queries/month free)
+export SWISS_CENSYS_API_PASSWORD="..."       # API Secret — generated alongside the API ID above
+
+# ── Private / self-hosted ─────────────────────────────────────────────────────
 export SWISS_MISP_URL="https://misp.internal"
-export SWISS_MISP_API_KEY="..."
+export SWISS_MISP_API_KEY="..."              # MISP → Administration → Auth Keys
+export SWISS_GRAYLOG_URL="https://graylog.internal"
+export SWISS_GRAYLOG_USERNAME="..."
+export SWISS_GRAYLOG_PASSWORD="..."
+export SWISS_DFIR_IRIS_URL="https://iris.internal"
+export SWISS_DFIR_IRIS_API_KEY="..."
+export SWISS_WAZUH_URL="https://wazuh.internal"
+export SWISS_WAZUH_USERNAME="..."
+export SWISS_WAZUH_PASSWORD="..."
 ```
 
 ---
@@ -152,9 +215,11 @@ export SWISS_MISP_API_KEY="..."
 
 Detailed per-integration docs including where to get API keys, tier differences, and returned fields: [docs/integrations.md](docs/integrations.md)
 
-**Free keys required:** VirusTotal · AbuseIPDB · GreyNoise · Shodan · IPInfo · AlienVault OTX · urlscan.io · Project Honeypot · MalwareBazaar · ThreatFox · URLhaus (last three share one key from [auth.abuse.ch](https://auth.abuse.ch/))
+**Free keys required:** VirusTotal · AbuseIPDB · GreyNoise · Shodan · AlienVault OTX · urlscan.io · Project Honeypot · MalwareBazaar · ThreatFox · URLhaus (last three share one key from [auth.abuse.ch](https://auth.abuse.ch/))
 
 **Works without any key:** GreyNoise (community tier) · Feodo Tracker · Tor exit check · Team Cymru · MITRE ATT&CK · crt.sh · BGPView · WHOIS · NVD · maclookup · LOLBas · blockchain · event IDs · decode · DNS-over-HTTPS · wafw00f
+
+**Free tier, registration required:** IBM X-Force Exchange (IBM ID required; free community tier, no credit card needed) · IPInfo (50,000 req/month keyless; key increases limits)
 
 **Optional (paid/free tier):** Censys (250 queries/month free)
 
@@ -174,5 +239,7 @@ make test
 # Run a single test file
 .venv/bin/pytest tests/test_virustotal.py -v
 ```
+
+Step-by-step investigation workflows: [docs/usage-guide.md](docs/usage-guide.md)
 
 Architecture and contribution guide: [docs/architecture.md](docs/architecture.md)
