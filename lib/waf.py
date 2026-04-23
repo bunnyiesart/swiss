@@ -1,13 +1,17 @@
 import json
 import subprocess
 import sys
+from pathlib import Path
+
+
+_WAFW00F = str(Path(sys.executable).parent / "wafw00f")
 
 
 class WAFDetector:
     def detect(self, url: str) -> dict:
         try:
             result = subprocess.run(
-                [sys.executable, "-m", "wafw00f", "-a", "-o", "-", "-f", "json", url],
+                [_WAFW00F, "-a", "-o", "-", "-f", "json", url],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -23,16 +27,16 @@ class WAFDetector:
             detected = [
                 e["firewall"]
                 for e in entries
-                if e.get("firewall") and e["firewall"].lower() not in ("none", "generic")
+                if e.get("detected") and e.get("firewall", "").lower() not in ("none", "generic")
             ]
             generic = any(
-                e.get("firewall", "").lower() == "generic"
+                e.get("detected") and e.get("firewall", "").lower() == "generic"
                 for e in entries
             )
             return {
-                "source":          "waf",
-                "url":             url,
-                "detected":        detected,
+                "source":           "waf",
+                "url":              url,
+                "detected":         detected,
                 "generic_detected": generic,
             }
         except subprocess.TimeoutExpired:

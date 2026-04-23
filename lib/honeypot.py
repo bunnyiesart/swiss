@@ -3,7 +3,7 @@ import re
 import socket
 
 _KEY_RE = re.compile(r"^[a-z]{12}$")
-_TYPE_MAP = {0: "search_engine", 1: "suspicious", 2: "harvester", 4: "comment_spammer"}
+_TYPE_MAP = {1: "suspicious", 2: "harvester", 4: "comment_spammer"}
 
 
 class ProjectHoneypot:
