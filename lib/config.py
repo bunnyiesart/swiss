@@ -10,7 +10,7 @@ _CFG: dict | None = None
 # Fields that are secrets — sourced exclusively from env vars, never from config.json.
 _SECRET_FIELDS = ("api_key", "api_password", "username", "password")
 # All credential fields that may appear as SWISS_<SERVICE>_<FIELD> env vars.
-_ENV_FIELDS = ("api_key", "api_password", "url", "username", "password")
+_ENV_FIELDS = ("api_key", "api_password", "url", "username", "password", "stream_id")
 
 _DEFAULTS: dict[str, dict] = {
     "virustotal":    {"enabled": True,  "favorite": True},
@@ -97,9 +97,8 @@ def _private_cfg(service: str) -> dict | None:
     return {
         "url": url,
         "api_key": cfg.get("api_key", "").strip(),
-        "username": cfg.get("username", "").strip(),
-        "password": cfg.get("password", "").strip(),
         "verify_ssl": cfg.get("verify_ssl", True),
+        "stream_id": cfg.get("stream_id", "").strip(),
     }
 
 

@@ -12,7 +12,7 @@
   "threatfox":         {"enabled": true,  "favorite": false},
   "urlhaus":           {"enabled": true,  "favorite": false},
   "misp":              {"url": "",        "enabled": false, "favorite": true,  "verify_ssl": true},
-  "graylog":           {"url": "",        "enabled": false, "favorite": false, "verify_ssl": true},
+  "graylog":           {"url": "",        "enabled": false, "favorite": false, "verify_ssl": true, "stream_id": ""},
   "dfir_iris":         {"url": "",        "enabled": false, "favorite": false, "verify_ssl": true},
   "wazuh":             {"url": "",        "enabled": false, "favorite": false, "verify_ssl": true},
   "censys":            {"enabled": true,  "favorite": false},

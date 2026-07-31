@@ -14,7 +14,11 @@ from lib.config import (
     _private_cfg,
     _unconfigured,
 )
+from lib.cisa_kev import CISAKEVClient
 from lib.cve import CVEClient
+from lib.epss import EPSSClient
+from lib.exploit_db import ExploitDBClient
+from lib.osv import OSVClient
 from lib.custom_blacklists import CustomBlacklists
 from lib.decode import Decoder
 from lib.dfir_iris import DFIRIrisClient
@@ -75,6 +79,7 @@ _vt = _abuse = _gn = _shodan = _ipinfo = _xforce = _av = _urlscan = _honeypot = 
 _mb = _tf = _uh = None
 _misp = _graylog = _iris = _wazuh = None
 _blacklists = _whois_c = _cve_c = _mac_c = _ua_c = _evid_c = _lolbas_c = _mitre_c = None
+_kev_c = _epss_c = _exploitdb_c = _osv_c = None
 _crtsh = _bgpview = _dns_records = _censys = _exposure = _waf = None
 _blockchain_c = _decoder = _doh = _feodo = _tor = None
 
@@ -206,7 +211,7 @@ def get_graylog():
     if _graylog is None:
         cfg = _private_cfg("graylog")
         _graylog = GraylogClient(
-            url=cfg["url"], username=cfg["username"], password=cfg["password"], verify_ssl=cfg["verify_ssl"]
+            url=cfg["url"], api_key=cfg["api_key"], verify_ssl=cfg["verify_ssl"], stream_id=cfg.get("stream_id", "")
         ) if cfg else _unconfigured("graylog")
     return _graylog
 
@@ -249,6 +254,34 @@ def get_cve():
     if _cve_c is None:
         _cve_c = CVEClient()
     return _cve_c
+
+
+def get_kev():
+    global _kev_c
+    if _kev_c is None:
+        _kev_c = CISAKEVClient()
+    return _kev_c
+
+
+def get_epss():
+    global _epss_c
+    if _epss_c is None:
+        _epss_c = EPSSClient()
+    return _epss_c
+
+
+def get_exploitdb():
+    global _exploitdb_c
+    if _exploitdb_c is None:
+        _exploitdb_c = ExploitDBClient()
+    return _exploitdb_c
+
+
+def get_osv():
+    global _osv_c
+    if _osv_c is None:
+        _osv_c = OSVClient()
+    return _osv_c
 
 
 def get_mac():
@@ -497,7 +530,7 @@ _register_favorites()
 
 # ── Aggregated enrichment tools ────────────────────────────────────────────────
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_ip")
 def lookup_ip(ip: str) -> dict:
     """Look up an IP address across all enabled threat intelligence sources.
 
@@ -545,7 +578,7 @@ def lookup_ip(ip: str) -> dict:
     return results
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_domain")
 def lookup_domain(domain: str) -> dict:
     """Look up a domain across all enabled threat intelligence sources.
 
@@ -576,7 +609,7 @@ def lookup_domain(domain: str) -> dict:
     return results
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_hash")
 def lookup_hash(hash: str) -> dict:
     """Look up a file hash across all enabled threat intelligence sources.
 
@@ -608,7 +641,7 @@ def lookup_hash(hash: str) -> dict:
     return results
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_url")
 def lookup_url(url: str) -> dict:
     """Look up a URL across all enabled threat intelligence sources.
 
@@ -636,7 +669,7 @@ def lookup_url(url: str) -> dict:
     return results
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_recon")
 def recon(target: str) -> dict:
     """Passive reconnaissance on an IP address or domain.
 
@@ -673,7 +706,7 @@ def recon(target: str) -> dict:
     return _parallel(tasks)
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_check_exposure")
 def check_exposure(host: str, port: int = None) -> dict:
     """Check whether a host's service is exposed to the internet.
 
@@ -700,7 +733,7 @@ def check_exposure(host: str, port: int = None) -> dict:
     return _parallel(tasks)
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_detect_waf")
 def detect_waf(url: str) -> dict:
     """Detect Web Application Firewalls in front of a URL using wafw00f.
 
@@ -717,7 +750,7 @@ def detect_waf(url: str) -> dict:
     return get_waf().detect(url)
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_enrich")
 def enrich(ioc: str) -> dict:
     """Auto-detect the IOC type and enrich across all relevant sources.
 
@@ -752,7 +785,7 @@ def enrich(ioc: str) -> dict:
 
 # ── Utility tools ──────────────────────────────────────────────────────────────
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_technique")
 def lookup_technique(technique_id: str) -> dict:
     """Look up a MITRE ATT&CK technique by ID or name.
 
@@ -769,7 +802,7 @@ def lookup_technique(technique_id: str) -> dict:
     return get_mitre().lookup(technique_id.strip())
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_cve")
 def lookup_cve(cve_id: str) -> dict:
     """Look up a CVE in the NVD database.
 
@@ -782,7 +815,80 @@ def lookup_cve(cve_id: str) -> dict:
     return get_cve().lookup(cve_id.strip())
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_kev")
+def lookup_kev(cve_id: str) -> dict:
+    """Check whether a CVE is in the CISA Known Exploited Vulnerabilities catalog.
+
+    The KEV catalog lists vulnerabilities confirmed as actively exploited in the
+    wild. A KEV hit overrides CVSS scoring — treat the finding as critical
+    regardless of base score.
+
+    Args:
+        cve_id: CVE identifier (e.g. CVE-2024-1234).
+
+    Returns:
+        found, vendor/product, date added to KEV, required action, due date,
+        and whether the CVE has known ransomware campaign use.
+    """
+    return get_kev().lookup(cve_id.strip())
+
+
+@mcp.tool(name="swiss_lookup_epss")
+def lookup_epss(cve_id: str) -> dict:
+    """Get the EPSS score for a CVE.
+
+    EPSS (Exploit Prediction Scoring System) estimates the probability (0–1)
+    that a CVE will be exploited in the next 30 days. Updated daily by FIRST.org.
+    Use alongside CVSS: high CVSS + high EPSS = urgent; high CVSS + near-zero
+    EPSS = lower real-world priority.
+
+    Args:
+        cve_id: CVE identifier (e.g. CVE-2024-1234).
+
+    Returns:
+        epss_score (0.0–1.0), percentile rank among all CVEs, and score date.
+    """
+    return get_epss().lookup(cve_id.strip())
+
+
+@mcp.tool(name="swiss_lookup_exploits")
+def lookup_exploits(cve_id: str) -> dict:
+    """Search Exploit-DB for public exploits linked to a CVE.
+
+    Exploit-DB contains ~45,000 public exploits maintained by Offensive Security.
+    A result here signals PoC or working exploit availability, which elevates
+    real-world risk. Cross-reference with lookup_kev to confirm active exploitation.
+
+    Args:
+        cve_id: CVE identifier (e.g. CVE-2024-1234).
+
+    Returns:
+        exploit_count, list of exploits with id, description, type, platform,
+        date, and verification status.
+    """
+    return get_exploitdb().lookup(cve_id.strip())
+
+
+@mcp.tool(name="swiss_lookup_osv")
+def lookup_osv(cve_id: str) -> dict:
+    """Look up affected open-source packages for a CVE via OSV.dev.
+
+    OSV aggregates vulnerability data from 24 sources (NVD, GitHub Advisory
+    Database, PyPA, RustSec, Go, npm, and more) and maps CVEs to exact affected
+    package versions and fix versions per ecosystem. Best for dependency scanner
+    alerts (Dependabot, Snyk, supply chain findings).
+
+    Args:
+        cve_id: CVE identifier (e.g. CVE-2024-1234).
+
+    Returns:
+        OSV IDs, summary, and list of affected packages with ecosystem and
+        fixed version where available.
+    """
+    return get_osv().lookup(cve_id.strip())
+
+
+@mcp.tool(name="swiss_lookup_mac")
 def lookup_mac(mac: str) -> dict:
     """Look up the manufacturer for a MAC address.
 
@@ -795,7 +901,7 @@ def lookup_mac(mac: str) -> dict:
     return get_mac().lookup(mac.strip())
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_useragent")
 def lookup_useragent(ua: str) -> dict:
     """Parse a User-Agent string into browser, OS, and device components.
 
@@ -810,7 +916,7 @@ def lookup_useragent(ua: str) -> dict:
     return get_ua().parse(ua)
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_eventid")
 def lookup_eventid(event_id: str, platform: str = "windows") -> dict:
     """Look up a Windows/Sysmon/Exchange/SQL event ID.
 
@@ -824,7 +930,7 @@ def lookup_eventid(event_id: str, platform: str = "windows") -> dict:
     return get_evid().lookup(event_id.strip(), platform.strip().lower())
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_lolbas")
 def lookup_lolbas(name: str) -> dict:
     """Search the LOLBas database for a living-off-the-land binary.
 
@@ -837,7 +943,7 @@ def lookup_lolbas(name: str) -> dict:
     return get_lolbas().lookup(name.strip())
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_lookup_blockchain")
 def lookup_blockchain(address: str) -> dict:
     """Look up a Bitcoin address or transaction hash on blockchain.com.
 
@@ -851,7 +957,7 @@ def lookup_blockchain(address: str) -> dict:
     return get_blockchain().lookup(address.strip())
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_decode")
 def decode(value: str, encoding: str = "magic") -> dict:
     """Decode or transform an encoded string.
 
@@ -868,7 +974,7 @@ def decode(value: str, encoding: str = "magic") -> dict:
     return get_decoder().decode(value, encoding)
 
 
-@mcp.tool()
+@mcp.tool(name="swiss_resolve_domain")
 def resolve_domain(domain: str, record_type: str = "A") -> dict:
     """Resolve a domain using DNS-over-HTTPS (Google DNS).
 
