@@ -7,11 +7,12 @@ _LIMIT = 10
 
 
 class GraylogClient:
-    def __init__(self, url: str, username: str, password: str, verify_ssl: bool = True):
+    def __init__(self, url: str, api_key: str, verify_ssl: bool = True, stream_id: str = ""):
         self._url = url.rstrip("/")
         self._verify = verify_ssl
+        self._stream_id = stream_id
         self._session = requests.Session()
-        self._session.auth = (username, password)
+        self._session.auth = (api_key, "token")
         self._session.headers["Accept"] = "application/json"
         retry = Retry(total=3, backoff_factor=1, status_forcelist=[502, 503, 504])
         adapter = HTTPAdapter(max_retries=retry)
@@ -20,9 +21,12 @@ class GraylogClient:
 
     def top_events(self, ioc: str) -> dict:
         try:
+            params = {"query": ioc, "range": _RANGE_SECONDS, "limit": _LIMIT, "decorate": False}
+            if self._stream_id:
+                params["filter"] = f"streams:{self._stream_id}"
             r = self._session.get(
                 f"{self._url}/api/search/universal/relative",
-                params={"query": ioc, "range": _RANGE_SECONDS, "limit": _LIMIT, "decorate": False},
+                params=params,
                 timeout=15,
                 verify=self._verify,
             )
