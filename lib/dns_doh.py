@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://dns.google/resolve"
 _STATUS_CODES = {
@@ -40,4 +41,4 @@ class DNSDoH:
                 "recursive":   d.get("RD", False),
             }
         except Exception as e:
-            return {"source": "dns_doh", "error": str(e)}
+            return {"source": "dns_doh", "error": safe_error(e)}

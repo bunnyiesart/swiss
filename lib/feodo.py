@@ -3,6 +3,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from lib.cache import TTLCache
+from lib.redact import safe_error
 
 _URL = "https://feodotracker.abuse.ch/downloads/ipblocklist.json"
 _cache = TTLCache(ttl=300)
@@ -41,4 +42,4 @@ class FeodoTracker:
                     }
             return {"source": "feodo", "ip": ip, "listed": False}
         except Exception as e:
-            return {"source": "feodo", "error": str(e)}
+            return {"source": "feodo", "error": safe_error(e)}

@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://threatfox-api.abuse.ch/api/v1/"
 
@@ -40,4 +41,4 @@ class ThreatFox:
                 ],
             }
         except Exception as e:
-            return {"source": "threatfox", "error": str(e)}
+            return {"source": "threatfox", "error": safe_error(e)}

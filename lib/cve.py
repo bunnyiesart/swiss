@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
@@ -54,4 +55,4 @@ class CVEClient:
                 "references":    references,
             }
         except Exception as e:
-            return {"source": "cve", "error": str(e)}
+            return {"source": "cve", "error": safe_error(e)}

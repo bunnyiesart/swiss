@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 
 class DFIRIrisClient:
@@ -38,4 +39,4 @@ class DFIRIrisClient:
                 "cases":      cases,
             }
         except Exception as e:
-            return {"source": "dfir_iris", "error": str(e)}
+            return {"source": "dfir_iris", "error": safe_error(e)}

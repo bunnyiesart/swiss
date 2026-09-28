@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://api.shodan.io"
 
@@ -40,4 +41,4 @@ class Shodan:
                 "last_update":  d.get("last_update"),
             }
         except Exception as e:
-            return {"source": "shodan", "error": str(e)}
+            return {"source": "shodan", "error": safe_error(e)}

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://urlscan.io/api/v1"
 _RECENT_DAYS = 7
@@ -90,7 +91,7 @@ class URLScan:
                 return {"source": "urlscan", "error": "submission_failed"}
             return self._poll(uuid)
         except Exception as e:
-            return {"source": "urlscan", "error": str(e)}
+            return {"source": "urlscan", "error": safe_error(e)}
 
     def check_url(self, url: str) -> dict:
         try:
@@ -102,4 +103,4 @@ class URLScan:
                 return {"source": "urlscan", "error": "submission_failed"}
             return self._poll(uuid)
         except Exception as e:
-            return {"source": "urlscan", "error": str(e)}
+            return {"source": "urlscan", "error": safe_error(e)}

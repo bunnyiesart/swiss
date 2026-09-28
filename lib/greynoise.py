@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 _COMMUNITY_BASE  = "https://api.greynoise.io/v3/community"
 _ENTERPRISE_BASE = "https://api.greynoise.io/v3/noise/context"
@@ -39,7 +40,7 @@ class GreyNoise:
                 "message":        d.get("message"),
             }
         except Exception as e:
-            return {"source": "greynoise", "error": str(e)}
+            return {"source": "greynoise", "error": safe_error(e)}
 
     def _check_enterprise(self, ip: str) -> dict:
         try:
@@ -63,4 +64,4 @@ class GreyNoise:
                 "seen":           d.get("seen"),
             }
         except Exception as e:
-            return {"source": "greynoise", "error": str(e)}
+            return {"source": "greynoise", "error": safe_error(e)}

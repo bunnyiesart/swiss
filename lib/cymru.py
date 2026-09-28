@@ -2,6 +2,7 @@ import ipaddress
 from datetime import datetime, timezone
 
 from lib.dns_doh import DNSDoH
+from lib.redact import safe_error
 
 _MD5_LEN = 32
 
@@ -57,7 +58,7 @@ class Cymru:
                 "org":       org,
             }
         except Exception as e:
-            return {"source": "cymru", "ip": ip, "error": str(e)}
+            return {"source": "cymru", "ip": ip, "error": safe_error(e)}
 
     def check_hash(self, hash_val: str) -> dict:
         if len(hash_val) != _MD5_LEN:
@@ -85,4 +86,4 @@ class Cymru:
                 "detection_pct": int(parts[1]),
             }
         except Exception as e:
-            return {"source": "cymru", "hash": hash_val, "error": str(e)}
+            return {"source": "cymru", "hash": hash_val, "error": safe_error(e)}

@@ -3,6 +3,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from lib.ioc import detect_ioc_type
+from lib.redact import safe_error
 
 _HASH_TYPES = {"md5": "md5", "sha1": "sha1", "sha256": "sha256"}
 
@@ -51,13 +52,13 @@ class MISPClient:
         try:
             return self._search(ip, "ip-dst")
         except Exception as e:
-            return {"source": "misp", "error": str(e)}
+            return {"source": "misp", "error": safe_error(e)}
 
     def check_domain(self, domain: str) -> dict:
         try:
             return self._search(domain, "domain")
         except Exception as e:
-            return {"source": "misp", "error": str(e)}
+            return {"source": "misp", "error": safe_error(e)}
 
     def check_hash(self, h: str) -> dict:
         ioc_type = detect_ioc_type(h)
@@ -65,10 +66,10 @@ class MISPClient:
         try:
             return self._search(h, attr_type)
         except Exception as e:
-            return {"source": "misp", "error": str(e)}
+            return {"source": "misp", "error": safe_error(e)}
 
     def check_url(self, url: str) -> dict:
         try:
             return self._search(url, "url")
         except Exception as e:
-            return {"source": "misp", "error": str(e)}
+            return {"source": "misp", "error": safe_error(e)}

@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://api.xforce.ibmcloud.com"
 
@@ -30,7 +31,7 @@ class IBMXForce:
                 "subnets": [s.get("subnet") for s in d.get("subnets", [])],
             }
         except Exception as e:
-            return {"source": "ibm_xforce", "error": str(e)}
+            return {"source": "ibm_xforce", "error": safe_error(e)}
 
     def check_domain(self, domain: str) -> dict:
         try:
@@ -44,7 +45,7 @@ class IBMXForce:
                 "malware":    d.get("associated", {}).get("malware", {}).get("count", 0),
             }
         except Exception as e:
-            return {"source": "ibm_xforce", "error": str(e)}
+            return {"source": "ibm_xforce", "error": safe_error(e)}
 
     def check_hash(self, h: str) -> dict:
         try:
@@ -59,7 +60,7 @@ class IBMXForce:
                 "created":  mal.get("created"),
             }
         except Exception as e:
-            return {"source": "ibm_xforce", "error": str(e)}
+            return {"source": "ibm_xforce", "error": safe_error(e)}
 
     def check_url(self, url: str) -> dict:
         try:
@@ -72,4 +73,4 @@ class IBMXForce:
                 "cats":   result.get("cats", {}),
             }
         except Exception as e:
-            return {"source": "ibm_xforce", "error": str(e)}
+            return {"source": "ibm_xforce", "error": safe_error(e)}

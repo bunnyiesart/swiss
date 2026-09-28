@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 _RANGE_SECONDS = 86400  # 24 hours
 _LIMIT = 10
@@ -39,4 +40,4 @@ class GraylogClient:
                 "recent_hits": [m.get("message", {}) for m in messages[:_LIMIT]],
             }
         except Exception as e:
-            return {"source": "graylog", "error": str(e)}
+            return {"source": "graylog", "error": safe_error(e)}

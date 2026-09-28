@@ -1,5 +1,6 @@
 import json
 import os
+from lib.redact import safe_error
 
 _DATA_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "eventids.json"))
 _DB: dict | None = None
@@ -33,4 +34,4 @@ class EventIDClient:
                 "mitre":       entry.get("mitre", []),
             }
         except Exception as e:
-            return {"source": "eventid", "error": str(e)}
+            return {"source": "eventid", "error": safe_error(e)}

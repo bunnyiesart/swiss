@@ -2,6 +2,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from lib.redact import safe_error
 
 
 _WAFW00F = str(Path(sys.executable).parent / "wafw00f")
@@ -42,6 +43,6 @@ class WAFDetector:
         except subprocess.TimeoutExpired:
             return {"source": "waf", "url": url, "error": "timeout"}
         except json.JSONDecodeError as e:
-            return {"source": "waf", "url": url, "error": f"json_parse_error: {e}"}
+            return {"source": "waf", "url": url, "error": f"json_parse_error: {safe_error(e)}"}
         except Exception as e:
-            return {"source": "waf", "url": url, "error": str(e)}
+            return {"source": "waf", "url": url, "error": safe_error(e)}

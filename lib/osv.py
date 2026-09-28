@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://api.osv.dev/v1/query"
 
@@ -49,4 +50,4 @@ class OSVClient:
                 "packages":  packages[:20],
             }
         except Exception as e:
-            return {"source": "osv", "error": str(e)}
+            return {"source": "osv", "error": safe_error(e)}

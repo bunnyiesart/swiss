@@ -1,6 +1,8 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
+from fastmcp.server.middleware import Middleware
 
 from lib.abuseipdb import AbuseIPDB
 from lib.alienvault import AlienVault
@@ -40,6 +42,7 @@ from lib.censys import CensysClient
 from lib.waf import WAFDetector
 from lib.exposure import ExposureChecker
 from lib.recon import BGPViewClient, CRTShClient, DNSRecords
+from lib.redact import safe_error, scrub, secret_values
 from lib.shodan import Shodan
 from lib.threatfox import ThreatFox
 from lib.tor_exit import TorExitNodes
@@ -51,6 +54,37 @@ from lib.wazuh import WazuhClient
 from lib.whois import WHOISClient
 
 mcp = FastMCP("swiss")
+
+
+# ── Credential scrubbing ───────────────────────────────────────────────────────
+
+class ScrubSecrets(Middleware):
+    """Mask every configured secret value in every tool result.
+
+    The clients in lib/ already route their error strings through
+    safe_error(); this is the net under them, so a client that builds a
+    message some other way -- or a backend that echoes the request back --
+    still cannot hand a configured key to whoever called the tool.
+    """
+
+    async def on_call_tool(self, context, call_next):
+        try:
+            result = await call_next(context)
+        except Exception as exc:
+            raise ToolError(safe_error(exc)) from None
+        secrets = secret_values()
+        if not secrets:
+            return result
+        for block in result.content:
+            text = getattr(block, "text", None)
+            if isinstance(text, str):
+                block.text = scrub(text, secrets)
+        if result.structured_content is not None:
+            result.structured_content = scrub(result.structured_content, secrets)
+        return result
+
+
+mcp.add_middleware(ScrubSecrets())
 
 
 # ── Parallel execution ─────────────────────────────────────────────────────────
@@ -67,7 +101,7 @@ def _parallel(tasks: dict[str, tuple]) -> dict:
             try:
                 result = future.result()
             except Exception as exc:
-                result = {"source": name, "error": str(exc)}
+                result = {"source": name, "error": safe_error(exc)}
             if result.get("error") != "not_configured":
                 results[name] = result
     return results

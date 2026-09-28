@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://search.censys.io/api/v2"
 
@@ -42,4 +43,4 @@ class CensysClient:
                 "bgp_prefix": asn.get("bgp_prefix"),
             }
         except Exception as e:
-            return {"source": "censys", "error": str(e)}
+            return {"source": "censys", "error": safe_error(e)}

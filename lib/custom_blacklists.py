@@ -4,6 +4,7 @@ from urllib3.util.retry import Retry
 
 from lib.cache import TTLCache
 from lib.config import _blacklist_configs
+from lib.redact import safe_error
 
 _cache = TTLCache(ttl=300)
 
@@ -38,5 +39,5 @@ class CustomBlacklists:
                 if ioc in lines:
                     matches.append({"source": name, "listed": True, "url": entry["url"]})
             except Exception as e:
-                matches.append({"source": name, "error": str(e)})
+                matches.append({"source": name, "error": safe_error(e)})
         return matches

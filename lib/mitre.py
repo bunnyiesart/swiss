@@ -3,6 +3,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from lib.cache import TTLCache
+from lib.redact import safe_error
 
 _URL = "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
 _cache = TTLCache(ttl=86400)
@@ -98,4 +99,4 @@ class MITREClient:
                 "url":         url,
             }
         except Exception as e:
-            return {"source": "mitre", "error": str(e)}
+            return {"source": "mitre", "error": safe_error(e)}

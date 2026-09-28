@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://api.abuseipdb.com/api/v2"
 
@@ -36,4 +37,4 @@ class AbuseIPDB:
                 "is_whitelisted":        d.get("isWhitelisted"),
             }
         except Exception as e:
-            return {"source": "abuseipdb", "error": str(e)}
+            return {"source": "abuseipdb", "error": safe_error(e)}

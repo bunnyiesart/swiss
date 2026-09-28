@@ -3,6 +3,7 @@ import re
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 _TX_RE = re.compile(r"^[a-fA-F0-9]{64}$")
 BASE = "https://blockchain.info"
@@ -20,7 +21,7 @@ class BlockchainClient:
                 return self._lookup_tx(address)
             return self._lookup_address(address)
         except Exception as e:
-            return {"source": "blockchain", "error": str(e)}
+            return {"source": "blockchain", "error": safe_error(e)}
 
     def _lookup_address(self, address: str) -> dict:
         r = self._session.get(f"{BASE}/rawaddr/{address}", params={"limit": 10}, timeout=15)

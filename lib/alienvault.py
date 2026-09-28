@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://otx.alienvault.com/api/v1/indicators"
 
@@ -45,7 +46,7 @@ class AlienVault:
                 **self._pulse_summary(d),
             }
         except Exception as e:
-            return {"source": "alienvault", "error": str(e)}
+            return {"source": "alienvault", "error": safe_error(e)}
 
     def check_domain(self, domain: str) -> dict:
         try:
@@ -56,7 +57,7 @@ class AlienVault:
                 **self._pulse_summary(d),
             }
         except Exception as e:
-            return {"source": "alienvault", "error": str(e)}
+            return {"source": "alienvault", "error": safe_error(e)}
 
     def check_hash(self, h: str) -> dict:
         try:
@@ -67,4 +68,4 @@ class AlienVault:
                 **self._pulse_summary(d),
             }
         except Exception as e:
-            return {"source": "alienvault", "error": str(e)}
+            return {"source": "alienvault", "error": safe_error(e)}

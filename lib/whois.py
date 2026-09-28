@@ -1,4 +1,5 @@
 import whois as python_whois
+from lib.redact import safe_error
 
 
 class WHOISClient:
@@ -24,4 +25,4 @@ class WHOISClient:
                 "emails":          [str(e) for e in (w.get("emails") or [])[:3]],
             }
         except Exception as e:
-            return {"source": "whois", "error": str(e)}
+            return {"source": "whois", "error": safe_error(e)}

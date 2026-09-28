@@ -1,5 +1,6 @@
 import socket
 import time
+from lib.redact import safe_error
 
 
 class ExposureChecker:
@@ -27,7 +28,7 @@ class ExposureChecker:
                 "host":      host,
                 "port":      port,
                 "reachable": False,
-                "error":     str(e),
+                "error":     safe_error(e),
             }
         except Exception as e:
-            return {"source": "exposure", "host": host, "port": port, "error": str(e)}
+            return {"source": "exposure", "host": host, "port": port, "error": safe_error(e)}

@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 _LIMIT = 10
 _TIMEFRAME = "24h"
@@ -62,4 +63,4 @@ class WazuhClient:
                 ],
             }
         except Exception as e:
-            return {"source": "wazuh", "error": str(e)}
+            return {"source": "wazuh", "error": safe_error(e)}

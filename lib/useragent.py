@@ -1,4 +1,5 @@
 from ua_parser import user_agent_parser
+from lib.redact import safe_error
 
 
 class UserAgentParser:
@@ -34,4 +35,4 @@ class UserAgentParser:
                 "is_bot":          is_bot,
             }
         except Exception as e:
-            return {"source": "useragent", "error": str(e)}
+            return {"source": "useragent", "error": safe_error(e)}

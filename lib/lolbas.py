@@ -3,6 +3,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from lib.cache import TTLCache
+from lib.redact import safe_error
 
 _URL = "https://lolbas-project.github.io/api/lolbas.json"
 _cache = TTLCache(ttl=1800)
@@ -54,4 +55,4 @@ class LOLBas:
                 })
             return {"source": "lolbas", "found": True, "count": len(results), "results": results}
         except Exception as e:
-            return {"source": "lolbas", "error": str(e)}
+            return {"source": "lolbas", "error": safe_error(e)}

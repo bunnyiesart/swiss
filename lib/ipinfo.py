@@ -1,14 +1,19 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://ipinfo.io"
 
 
 class IPInfo:
     def __init__(self, api_key: str):
-        self._token = api_key
         self._session = requests.Session()
+        # Header, not the `token` query parameter: a query string is part of
+        # the URL, and requests prints the URL in every HTTPError -- which is
+        # how the key used to reach the tool result on a 403.
+        if api_key:
+            self._session.headers["Authorization"] = f"Bearer {api_key}"
         retry = Retry(total=3, backoff_factor=1, status_forcelist=[502, 503, 504])
         self._session.mount("https://", HTTPAdapter(max_retries=retry))
 
@@ -16,7 +21,6 @@ class IPInfo:
         try:
             r = self._session.get(
                 f"{BASE}/{ip}/json",
-                params={"token": self._token} if self._token else {},
                 timeout=10,
             )
             r.raise_for_status()
@@ -38,4 +42,4 @@ class IPInfo:
                 "is_hosting": privacy.get("hosting"),
             }
         except Exception as e:
-            return {"source": "ipinfo", "error": str(e)}
+            return {"source": "ipinfo", "error": safe_error(e)}

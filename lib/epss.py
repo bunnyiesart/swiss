@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://api.first.org/data/v1/epss"
 
@@ -29,4 +30,4 @@ class EPSSClient:
                 "date":       entry.get("date"),
             }
         except Exception as e:
-            return {"source": "epss", "error": str(e)}
+            return {"source": "epss", "error": safe_error(e)}

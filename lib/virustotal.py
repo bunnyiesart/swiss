@@ -3,6 +3,7 @@ import base64
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://www.virustotal.com/api/v3"
 
@@ -46,7 +47,7 @@ class VirusTotal:
                 "tags":       a.get("tags", []),
             }
         except Exception as e:
-            return {"source": "virustotal", "error": str(e)}
+            return {"source": "virustotal", "error": safe_error(e)}
 
     def check_domain(self, domain: str) -> dict:
         try:
@@ -61,7 +62,7 @@ class VirusTotal:
                 "tags":        a.get("tags", []),
             }
         except Exception as e:
-            return {"source": "virustotal", "error": str(e)}
+            return {"source": "virustotal", "error": safe_error(e)}
 
     def check_hash(self, h: str) -> dict:
         try:
@@ -80,7 +81,7 @@ class VirusTotal:
                 "tags":             a.get("tags", []),
             }
         except Exception as e:
-            return {"source": "virustotal", "error": str(e)}
+            return {"source": "virustotal", "error": safe_error(e)}
 
     def check_url(self, url: str) -> dict:
         try:
@@ -95,4 +96,4 @@ class VirusTotal:
                 "tags":     a.get("tags", []),
             }
         except Exception as e:
-            return {"source": "virustotal", "error": str(e)}
+            return {"source": "virustotal", "error": safe_error(e)}

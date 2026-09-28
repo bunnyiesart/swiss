@@ -5,6 +5,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from lib.dns_doh import DNSDoH
+from lib.redact import safe_error
 
 _DNS_RECORD_TYPES = ["A", "AAAA", "MX", "NS", "TXT", "CNAME"]
 
@@ -47,7 +48,7 @@ class CRTShClient:
                 "subdomains": sorted(subdomains)[:50],
             }
         except Exception as e:
-            return {"source": "crt_sh", "error": str(e)}
+            return {"source": "crt_sh", "error": safe_error(e)}
 
 
 class BGPViewClient:
@@ -85,7 +86,7 @@ class BGPViewClient:
                 result["allocated"] = rir.get("date_allocated")
             return result
         except Exception as e:
-            return {"source": "bgpview", "error": str(e)}
+            return {"source": "bgpview", "error": safe_error(e)}
 
 
 class DNSRecords:
@@ -107,7 +108,7 @@ class DNSRecords:
                         records[rt] = [a["data"] for a in r["answers"]]
             return {"source": "dns", "domain": domain, "records": records}
         except Exception as e:
-            return {"source": "dns", "error": str(e)}
+            return {"source": "dns", "error": safe_error(e)}
 
     def lookup_ptr(self, ip: str) -> dict:
         try:
@@ -118,4 +119,4 @@ class DNSRecords:
                 return {"source": "dns", "ip": ip, "ptr": []}
             return {"source": "dns", "ip": ip, "ptr": [a["data"] for a in r["answers"]]}
         except Exception as e:
-            return {"source": "dns", "error": str(e)}
+            return {"source": "dns", "error": safe_error(e)}

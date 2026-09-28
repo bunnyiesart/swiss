@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://api.maclookup.app/v2/macs"
 
@@ -26,4 +27,4 @@ class MACLookup:
                 "updated":  d.get("updated"),
             }
         except Exception as e:
-            return {"source": "maclookup", "error": str(e)}
+            return {"source": "maclookup", "error": safe_error(e)}

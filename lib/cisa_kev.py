@@ -3,6 +3,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from lib.cache import TTLCache
+from lib.redact import safe_error
 
 _URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 _cache = TTLCache(ttl=21600)  # 6 hours
@@ -44,4 +45,4 @@ class CISAKEVClient:
                 "known_ransomware_use":      entry.get("knownRansomwareCampaignUse", "Unknown"),
             }
         except Exception as e:
-            return {"source": "cisa_kev", "error": str(e)}
+            return {"source": "cisa_kev", "error": safe_error(e)}

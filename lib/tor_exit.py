@@ -3,6 +3,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from lib.cache import TTLCache
+from lib.redact import safe_error
 
 _URL = "https://check.torproject.org/torbulkexitlist"
 _cache = TTLCache(ttl=300)
@@ -28,4 +29,4 @@ class TorExitNodes:
             exit_nodes = _fetch()
             return {"source": "tor_exit", "ip": ip, "is_exit_node": ip in exit_nodes}
         except Exception as e:
-            return {"source": "tor_exit", "error": str(e)}
+            return {"source": "tor_exit", "error": safe_error(e)}

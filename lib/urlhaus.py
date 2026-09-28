@@ -1,6 +1,7 @@
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from lib.redact import safe_error
 
 BASE = "https://urlhaus-api.abuse.ch/v1"
 
@@ -31,7 +32,7 @@ class URLhaus:
                 "urls_count": d.get("urls_count"),
             }
         except Exception as e:
-            return {"source": "urlhaus", "error": str(e)}
+            return {"source": "urlhaus", "error": safe_error(e)}
 
     def check_host(self, host: str) -> dict:
         try:
@@ -52,4 +53,4 @@ class URLhaus:
                 ],
             }
         except Exception as e:
-            return {"source": "urlhaus", "error": str(e)}
+            return {"source": "urlhaus", "error": safe_error(e)}
