@@ -1,3 +1,4 @@
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fastmcp import FastMCP
@@ -1024,5 +1025,24 @@ def resolve_domain(domain: str, record_type: str = "A") -> dict:
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
+# The transport is env-selectable so the same server runs as a local stdio child
+# (the default, byte-for-byte the previous behaviour) or over streamable-HTTP so
+# it can be served behind a gateway. HTTP exposes the tools to any client that can
+# reach the socket; the default bind is loopback and no shared secret is enforced,
+# so HTTP must sit behind an authenticating proxy before binding a routable address.
 if __name__ == "__main__":
-    mcp.run()
+    transport = os.environ.get("MCP_TRANSPORT", "stdio").strip().lower()
+    if transport == "stdio":
+        mcp.run()
+    elif transport == "http":
+        host = os.environ.get("MCP_HTTP_HOST", "127.0.0.1").strip()
+        port_raw = os.environ.get("MCP_HTTP_PORT", "8080").strip()
+        try:
+            port = int(port_raw)
+        except ValueError:
+            raise SystemExit(f"MCP_HTTP_PORT={port_raw!r} is not an integer.")
+        mcp.run(transport="http", host=host, port=port)
+    else:
+        raise SystemExit(
+            f"MCP_TRANSPORT={transport!r} is not supported; use 'stdio' or 'http'."
+        )
